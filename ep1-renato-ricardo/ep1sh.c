@@ -5,6 +5,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "utils.h"
+
 /* Tamanho maximo do string path. */
 #define M_PATH_SIZE 500
 
@@ -15,6 +17,9 @@ char *rec_cmd[] = {
   "cd",
   "pwd",
 }
+
+/* Tabela de argumentos com no maximo 100 caracteres. */
+char args_table[M_ARGS][100];
 
 /* String path interno. */
 char path[M_PATH_SIZE];
@@ -28,6 +33,9 @@ int run_cmd(char *cmd);
 /* Retorna posicao do comando embutido ou -1 se nao existe. */
 int cmd_exists(char *cmd);
 
+/* Extrai argumentos de uma string em args_table. */
+void extract_args(char *line);
+
 int main(int argc, char *args[]) {
   char *cmd;
   char *args[M_ARGS];
@@ -38,25 +46,26 @@ int main(int argc, char *args[]) {
   int i;
 
   /* Inicializacao. */
-  strcpy(path, getenv("HOME")); 
+  getcwd(path, sizeof(path)); 
   cmd = NULL;
   for (i=0;i<M_ARGS;++i)
-    args[i] = NULL;
+    args_table[i] = NULL;
 
   do {
     sprintf(prompt, "[%s] ", path);
   
     cmd = readline(prompt);  
 
-    if ((i=cmd_exists(cmd)))
-      res_proc = run_cmd(i, cmd+1);       
+    extract_args(cmd);
+
+    if ((i=cmd_exists(args_table[0])))
+      res_proc = run_cmd(i, args_table+1);       
     else
-      res_proc = run_cmd(cmd[0], cmd+1, env);
+      res_proc = run_ext_cmd(args_table[0], args_table+1, env);
+
+    free(cmd);
 
   } while (strcmp(cmd, "exit"));
-
-  /* Cleanup. */
-  free(cmd);
 
   return 0;
 }
@@ -81,10 +90,14 @@ int run_cmd(int cmd_index, char* args) {
   switch(cmd_index) {
     case 0:
       /* cd */
-      
+      if (args[0][0] == '/')
+        strcpy(path, args[0]);
+      else
+        strcat(path, args[0]);
     break;
     case 1:
       /* pwd */
+      puts(path);
     break;
   } 
 
@@ -100,4 +113,15 @@ int cmd_exists(char *cmd) {
       return i;
 
   return -1;
+}
+
+void extract_args(char *line) {
+  char *token;
+  int i_args = 0;  
+
+  token = strtok(line, " ");
+  while (token != NULL) {
+    strcpy(args_table[i_args], token);
+    token = strtok(NULL, " ");
+  }
 }
