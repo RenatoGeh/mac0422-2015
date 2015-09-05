@@ -1,5 +1,6 @@
-CFLAGS = -ansi -pedantic -Wall
+CFLAGS = -ansi -pedantic -Wall -Wno-unused-result
 DEBUG = false
+READLINEF = -lreadline -lcurses
 
 ifeq ($(DEBUG), true)
 	CFLAGS += -g
@@ -10,7 +11,7 @@ endif
 all: ep1sh simproc
 
 ep1sh: ep1sh.c
-	gcc $< $(CFLAGS)
+	gcc $< $(CFLAGS) $(READLINEF)
 
 simproc: simproc.c
 	gcc $< $(CFLAGS)
