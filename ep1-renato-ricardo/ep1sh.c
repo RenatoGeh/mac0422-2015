@@ -1,3 +1,11 @@
+/* ep1sh.c 
+ * MAC0422 - 2015
+ *
+ * Renato Geh      - 8536030
+ * Ricardo Fonseca - 8536131
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,11 +54,11 @@ int main(int argc, char *argv[]) {
   char *env[] = {NULL};
   char prompt[M_PATH_SIZE+3];
 
-  int i, status = 1;
+  int i;
 
   /* Inicializacao. */
   HOME = getenv("HOME");
-  getcwd(path, sizeof(path)); 
+  getcwd(path, sizeof(path)/sizeof(path[0])); 
   cmd = NULL;
   for (i=0;i<M_ARGS;++i)
     args_table[i] = NULL;
@@ -69,24 +77,22 @@ int main(int argc, char *argv[]) {
     else
       run_ext_cmd(args_table[0], args_table, env);
 
-    status = strcmp(args_table[0], "exit");
-
     /* Iterative cleanup. */
     free(cmd);
     for (i=0;args_table[i] != NULL;++i) {
       free(args_table[i]);
       args_table[i] = NULL;
     }
-  } while (status);
+  } while (1);
 
-  /* End program cleanup. */
-  clear_history();
+  /* Considera exit como o unico jeito de sair do shell, entao nao ha cleanup aqui. */
 
   return 0;
 }
 
 int run_ext_cmd(const char *cmd, char *const argv[], char *const env[]) {
   pid_t ch_id;
+
   if ((ch_id = fork()) == 0) {
     /* Is child. */
     execve(cmd, argv, env);     
@@ -114,7 +120,7 @@ int run_cmd(int cmd_index, char *args[]) {
         strcpy(path, HOME);
       else if (args[1][0] == '.') {
         if (args[1][1] == '.') {
-          /* Volta um diretorio acima. */
+          /* Volta apenas UM diretorio acima. */
           char *c = path, *l = c = path+1;
 
           /* Acha o ultimo diretorio de path. */
@@ -131,17 +137,20 @@ int run_cmd(int cmd_index, char *args[]) {
           if (!(args[1][1] == '\0' || (args[1][1] == '/' && args[1][2] == '\0')))
             strcat(path, args[1]+1);
         }
-      } else {
+      } else 
         sprintf(path, "%s/%s", path, args[1]);
-      }
+      return chdir(path);
     break;
     case 1:
-      /* pwd */
-      puts(path);
+      /* pwd */ {
+        char pwd[M_PATH_SIZE];
+        getcwd(pwd, M_PATH_SIZE);
+        puts(pwd);
+      }
     break;
     case 2:
       /* exit */
-      /* Ignora o exit. */
+      exit(EXIT_SUCCESS);
     break;
   } 
 
