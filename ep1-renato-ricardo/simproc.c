@@ -7,22 +7,24 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <time.h>
 
 #include "utils.h"
-
-process *procs;
-queue *p_queue; 
-int n_threads;
-
-/* Extrai as informacoes do trace. */
-void parse(const char *filename);
+#include "simproc.h"
 
 int main(int argc, char *argv[]) {
-  parse(argv[1]);
+  /* Thread para gerenciar outros threads. */
+  void (*manager) (void);
+  
+  parse(argv[2]);
   /* Numero de processos disponiveis. */
-  n_threads = sysconf(_SC_NPROCESSORS_ONLN); 
+  n_max_threads = sysconf(_SC_NPROCESSORS_ONLN); 
   
-  
+  manager = thread_managers[atoi(argv[1])];
+  thread_clock = 0;
+  time(&g_clock);
 
   return 0;
 }
@@ -38,6 +40,7 @@ void parse(const char *filename) {
 
   p_queue = new_queue(i);
   procs = (process*) malloc(i*sizeof(process));
+  n_procs = i;
 
   rewind(trace);
   for (i=0;
@@ -46,3 +49,57 @@ void parse(const char *filename) {
           &procs[i].deadline, &procs[i].p)!=EOF;
         ++i);
 }
+
+process *get_ready_proc(void) {
+  static start = 0;
+  int i;
+
+  for (i=start;i<n_procs;++i)
+    if (procs[i].t0 <= thread_clock && procs[i].status < 0) {
+      start = i;
+      return &procs[i]; 
+    }
+  
+  start = 0;
+  return NULL;
+}
+
+/* Incompleto. difftime so da inteiros e portanto sempre vai dar 0. */
+void process_thread(void *args) {
+  process *self;
+  time_t first_clock, i_clock, dt_clock;
+  double delta = 0, t_dt;
+
+  time(&first_clock);
+  self = (process*) args;
+  t_dt = self->dt;
+
+  while (delta < t_dt) {
+    time(&i_clock);
+    
+    time(&dt_clock);
+    delta += difftime(i_clock, dt_clock);
+  }
+
+  self->tf = difftime(first_clock, dt_clock);
+  self->tr = delta;
+}
+
+void fcfs_mgr(void *args) {
+  time_t c_clock;
+  process *p;
+  
+  p = get_ready_proc();
+  while (p != NULL) {
+    if (n_threads < n_max_threads) {
+      pthread_create(&p->id, NULL, &process_thread, (void*) process_thread);
+      p->status = 1;
+      ++n_threads;
+    }
+    p = get_ready_proc();
+  }
+
+  thread_clock = difftime(g_clock, c_clock);
+}
+
+

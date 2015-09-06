@@ -14,6 +14,8 @@
 #define M_PROCESS_NAME 100
 
 typedef struct {
+  /* Identificador da thread. */
+  pthread_t id;
   /* Tempo de entrada. */
   double t0; 
   /* Nome do processo. */
@@ -24,6 +26,13 @@ typedef struct {
   double deadline;
   /* Prioridade. */
   int p;
+  /* 1 se esta rodando, 0 se ja foi rodado, -1 se ainda precisa rodar. */
+  int status;
+  /* Membros abaixo daqui sao usados para retorno da thread quando acabado. */
+  /* Quando terminou. */
+  int tf;
+  /* Quanto demorou. */
+  int tr;
 } process;
 
 /* Cria um novo processo. */

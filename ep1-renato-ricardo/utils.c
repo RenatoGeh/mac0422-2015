@@ -20,6 +20,9 @@ process *new_proc(int t0, char *name, int dt, int deadline, int p) {
   inst->dt = dt;
   inst->deadline = deadline;
   inst->p = p;
+  inst->status = -1;
+
+  inst->tr = inst->tf = -1;
 
   return inst;
 }
