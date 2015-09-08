@@ -1,0 +1,11 @@
+0 proc0 2 3 4
+0.5 proc1 1 1.5 9
+1 proc2 4 5 2
+1 proc3 2 2 10
+3 proc4 5 10 -10
+4 proc5 2 3 0
+5 proc6 10 11 1
+5 proc7 11 12 2
+5 proc8 9 10 3
+5 proc9 10 10 1
+5 proc10 11 12 3

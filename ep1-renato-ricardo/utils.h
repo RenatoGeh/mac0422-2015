@@ -9,6 +9,8 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#include <pthread.h>
+
 /* Processo. */
 
 #define M_PROCESS_NAME 100

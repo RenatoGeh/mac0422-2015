@@ -8,6 +8,9 @@
 
 #include "utils.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 /* Processo. */
 
 process *new_proc(double t0, char *name, double dt, double deadline, int p) {
@@ -15,7 +18,6 @@ process *new_proc(double t0, char *name, double dt, double deadline, int p) {
 
   inst = (process*) malloc(sizeof(process));
   inst->t0 = t0;
-  inst->name = (char*) malloc((strlen(name)+1)*sizeof(char));
   strcpy(inst->name, name);
   inst->dt = dt;
   inst->deadline = deadline;
@@ -53,22 +55,22 @@ void free_queue(queue *q) {
   int i, cap = q->capacity;
 
   for (i=0;i<cap;++i)
-    free(inst->internal[i]);
-  free(inst->internal);
+    free(q->internal[i]);
+  free(q->internal);
   
   free(q);
 }
 
 void enqueue(queue *q, process *p) {
   q->internal[q->_end] = p;
-  q->_end = (q->end + 1) % q->capacity;
+  q->_end = (q->_end + 1) % q->capacity;
   ++(q->size);
 }
 
 process *dequeue(queue *q) {
   process *res;
 
-  if (q->size >= q->capacity || q->size <= 0)
+  if (q->size > q->capacity || q->size <= 0)
     return NULL;
 
   res = q->internal[q->_start];
