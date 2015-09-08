@@ -1,6 +1,6 @@
 CFLAGS = -ansi -pedantic -Wall -Wno-unused-result
 DEBUG = false
-READLINEF = -lreadline -lcurses
+LINKS = -lreadline -lcurses -lpthread
 
 ifeq ($(DEBUG), true)
 	CFLAGS += -g
@@ -10,13 +10,16 @@ endif
 
 all: ep1sh simproc
 
-ep1sh: ep1sh.c
-	gcc $< $(CFLAGS) $(READLINEF)
+utils.o: utils.c utils.h
+	gcc $< $(CFLAGS) $(LINKS)
 
-simproc: simproc.c
-	gcc $< $(CFLAGS)
+ep1sh: ep1sh.c
+	gcc $< $(CFLAGS) $(LINKS)
+
+simproc: simproc.c simproc.h utils.o
+	gcc $< $(CFLAGS) $(LINKS)
 
 .PHONY: clean
 clean:
-	$(CLEAN)
+	rm *.out
 	

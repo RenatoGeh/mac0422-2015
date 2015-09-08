@@ -30,9 +30,9 @@ typedef struct {
   int status;
   /* Membros abaixo daqui sao usados para retorno da thread quando acabado. */
   /* Quando terminou. */
-  int tf;
+  double tf;
   /* Quanto demorou. */
-  int tr;
+  double tr;
 } process;
 
 /* Cria um novo processo. */

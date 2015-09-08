@@ -13,8 +13,12 @@
 
 #include "utils.h"
 
-/* Processos no trace. */
-process *procs;
+#define M_CPU_CORES 16
+
+/* Processos no trace para serem rodados. */
+queue *trace_procs;
+/* Processos rodados. */
+queue *finished_procs;
 /* Numero total de processos no trace. */
 int n_procs;
 /* Queue de processos. */
@@ -24,9 +28,12 @@ int n_max_threads;
 /* Numero de threads rodando. */
 int n_threads;
 /* Clock de inicio do escalonador. */
-time_t g_clock;
+clock_t g_clock;
 /* Tempo de execucao do escalonador. */
 double thread_clock;
+
+/* CPU affinity mask usadas. 1 se sim 0 se nao. */
+int cpu_mask_usage[M_CPU_CORES];
 
 /* Extrai as informacoes do trace. */
 void parse(const char *filename);
@@ -59,5 +66,8 @@ void (*thread_managers[6]) (void*) = {
 
 /* Thread dos processos. */
 void process_thread(void *args);
+
+/* Does a clock tick on the thread_clock. */
+void tick(void);
 
 #endif /* _SIMPROC_H_ */

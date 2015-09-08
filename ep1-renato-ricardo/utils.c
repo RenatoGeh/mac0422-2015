@@ -10,7 +10,7 @@
 
 /* Processo. */
 
-process *new_proc(int t0, char *name, int dt, int deadline, int p) {
+process *new_proc(double t0, char *name, double dt, double deadline, int p) {
   process *inst;
 
   inst = (process*) malloc(sizeof(process));
@@ -68,7 +68,7 @@ void enqueue(queue *q, process *p) {
 process *dequeue(queue *q) {
   process *res;
 
-  if (q->size >= q->capacity)
+  if (q->size >= q->capacity || q->size <= 0)
     return NULL;
 
   res = q->internal[q->_start];
