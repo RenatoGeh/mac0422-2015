@@ -109,21 +109,18 @@ void *process_thread(void *args) {
 
   sem_wait(&s_mutex);
 
-  ++n_threads;
   self = (process*) args;
   t_dt = self->dt;
   self->status = -1;
   
   DEBUG("Processo [%s] entrou no sistema.\n", self->name);
  
-  DEBUG("Processo [%s]: n_threads = %d, n_max_threads = %d.\n", self->name, n_threads, n_max_threads);
   CPU_ZERO(&cpu_mask); 
   for (i=0;i<n_max_threads;++i)
     if (!cpu_mask_usage[i]) {
       CPU_SET(i, &cpu_mask);
       cpu_mask_usage[i] = 1;
       pthread_setaffinity_np(self->id, sizeof(cpu_mask), &cpu_mask);
-      DEBUG("Processo [%s] tem %d CPUs.\n", self->name, CPU_COUNT(&cpu_mask));
       DEBUG("Processo [%s] usando CPU [%d].\n", self->name, i);
       break;
     }
@@ -171,11 +168,12 @@ void fcfs_mgr(void) {
 
     while (n_threads >= n_max_threads)
       tick();
-    
+   
     sem_wait(&s_mutex);
     enqueue(p_queue, p);
+    ++n_threads;
     pthread_create(&p->id, NULL, &process_thread, (void*) p);
-    sem_post(&s_mutex);
+    sem_post(&s_mutex); 
   }
 }
 
@@ -200,6 +198,7 @@ void sjf_mgr(void) {
     while (n_threads < n_max_threads && sjf_pqueue->size > 0) {
       top = depqueue(sjf_pqueue);
       enqueue(p_queue, top);
+      ++n_threads;
       pthread_create(&top->id, NULL, &process_thread, (void*) top);
     }    
     
@@ -215,6 +214,7 @@ void sjf_mgr(void) {
     while (n_threads < n_max_threads && sjf_pqueue->size > 0) {
       top = depqueue(sjf_pqueue);
       enqueue(p_queue, top);
+      ++n_threads;
       pthread_create(&top->id, NULL, &process_thread, (void*) top);
     }    
     
