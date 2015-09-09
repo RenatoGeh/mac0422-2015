@@ -43,6 +43,10 @@ sem_t s_mutex;
 /* Arquivo de saida. */
 FILE *out_file;
 
+/* Debug mode. */
+char debug_mode;
+#define DEBUG(...) if (debug_mode) fprintf(stderr, __VA_ARGS__)
+
 /* Extrai as informacoes do trace. */
 void parse(const char *filename);
 

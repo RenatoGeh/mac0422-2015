@@ -1,4 +1,4 @@
-CFLAGS = -ansi -pedantic -Wall -Wno-unused-result -I.
+CFLAGS = -pedantic -Wall -Wno-unused-result -std=c99
 DEBUG = false
 LINKS = -lreadline -lcurses -lpthread
 

@@ -27,7 +27,8 @@ int main(int argc, char *argv[]) {
   
   parse(argv[2]);
   out_file = fopen(argv[3], "w");
- 
+  debug_mode = argc==5 && argv[4][0]=='d';
+
   /* Numero de processos disponiveis. */
   n_max_threads = sysconf(_SC_NPROCESSORS_ONLN); 
   n_threads = 0;
@@ -41,6 +42,7 @@ int main(int argc, char *argv[]) {
   g_clock = clock();
 
   manager();
+
 
   while (p_queue->size > 0) {
     process *fst;
@@ -108,36 +110,42 @@ void *process_thread(void *args) {
   t_dt = self->dt;
   self->status = 1;
   
+  DEBUG("Processo [%s] entrou no sistema.\n", self->name);
+  
   for (i=0;i<n_max_threads;++i)
     if (!cpu_mask_usage[i]) {
       CPU_ZERO(&cpu_mask);
       CPU_SET(i, &cpu_mask);
       cpu_mask_usage[i] = 1;
       pthread_setaffinity_np(self->id, sizeof(cpu_mask), &cpu_mask);
+      DEBUG("Processo [%s] usando CPU [%d].\n", self->name, i);
       break;
     }
-  enqueue(p_queue, self);
 
   sem_post(&s_mutex);
 
   while (delta < t_dt) {
     i_clock = clock();
-    delta += (clock()-i_clock)/CLOCKS_PER_SEC;
+    delta += ((double)(clock()-i_clock))/((double)CLOCKS_PER_SEC);
   }
 
   sem_wait(&s_mutex);
 
-  self->tf = (clock()-g_clock)/CLOCKS_PER_SEC;
+  self->tf = ((double)(clock()-g_clock))/((double)CLOCKS_PER_SEC);
   self->tr = self->tf-self->t0;
   self->status = 0;
 
   enqueue(finished_procs, self);
   pthread_getaffinity_np(self->id, sizeof(cpu_mask), &cpu_mask);
   for (i=0;i<M_CPU_CORES;++i)
-    if (CPU_ISSET(i, &cpu_mask))
+    if (CPU_ISSET(i, &cpu_mask)) {
       cpu_mask_usage[i] = 0;
+      DEBUG("Process [%s] liberando CPU [%d].\n", self->name, i);
+    }
   --n_threads;  
 
+  DEBUG("Processo [%s] finalizando e imprimindo linha [\"%s %f %f\"] na saida.\n",
+      self->name, self->name, self->tf, self->tr);
   fprintf(out_file, "%s %f %f\n", self->name, self->tf, self->tr);
 
   sem_post(&s_mutex);
@@ -158,8 +166,10 @@ void fcfs_mgr(void) {
       tick();
     
     sem_wait(&s_mutex);
-    pthread_create(&p->id, NULL, &process_thread, (void*) p);
+    enqueue(p_queue, p);
     sem_post(&s_mutex);
+
+    pthread_create(&p->id, NULL, &process_thread, (void*) p);
   }
 }
 
@@ -170,5 +180,5 @@ void pschedule_mgr(void) {}
 void rdeadline_mgr(void) {}
 
 void tick(void) {
-  thread_clock = (clock()-g_clock)/CLOCKS_PER_SEC;
+  thread_clock = ((double)(clock()-g_clock))/((double)CLOCKS_PER_SEC);
 }
