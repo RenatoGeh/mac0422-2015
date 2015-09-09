@@ -25,6 +25,12 @@ queue *finished_procs;
 int n_procs;
 /* Queue de processos rodando. */
 queue *p_queue; 
+
+/* Priority queue para processos com menor job esperando. */
+pqueue *sjf_pqueue;
+/* Funcao de comparacao para sjf_pqueue. */
+int cmp_sjf_pqueue(process *a, process *b);
+
 /* Numero maximo de threads rodando ao mesmo tempo. */
 int n_max_threads;
 /* Numero de threads rodando. */

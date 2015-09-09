@@ -30,7 +30,6 @@ process *new_proc(double t0, char *name, double dt, double deadline, int p) {
 }
 
 void free_proc(process *proc) {
-  free(proc->name);
   free(proc);
 }
 
@@ -52,12 +51,7 @@ queue *new_queue(int size) {
 }
 
 void free_queue(queue *q) {
-  int i, cap = q->capacity;
-
-  for (i=0;i<cap;++i)
-    free(q->internal[i]);
-  free(q->internal);
-  
+  free(q->internal); 
   free(q);
 }
 
@@ -102,3 +96,93 @@ void clear_queue(queue *q) {
 
 /* Priority queue. */
 
+pqueue *new_pqueue(int size, int (*cmp) (process*, process*)) {
+  pqueue *inst;
+
+  inst = (pqueue*) malloc(sizeof(pqueue));
+  inst->internal = (process**) malloc((size+1)*sizeof(process*));
+  inst->size = 0;
+  inst->capacity = size+1;
+  inst->cmp = cmp;
+
+  return inst;
+}
+
+void free_pq(pqueue *pq) {
+  free(pq->internal);
+  free(pq);
+}
+
+void _insert_pq(process *np, process **heap, int size, int (*cmp) (process*, process*)) {
+  int i;
+  process *tmp;
+
+  i = size + 1;
+  heap[i] = np;
+  
+  while (cmp(heap[i], heap[i/2]) < 0 && i > 1) {
+    tmp = heap[i];
+    heap[i] = heap[i/2];
+    heap[i/2] = tmp;
+
+    i /= 2;
+  }
+}
+
+void _sdown_pq(process **heap, int size, int i, int (*cmp) (process*, process*)) {
+  int child;
+  process *tmp;
+
+  while (1) {
+    child = i*2;
+    
+    if (child > size)
+      break;
+    else if ((child < size) && (cmp(heap[child], heap[child+1]) > 0))
+      ++child;
+
+    if (cmp(heap[child], heap[i]) < 0) {
+      tmp = heap[child];
+      heap[child] = heap[i];
+      heap[i] = tmp;
+      i = child;
+    } else break;
+  }
+}
+
+process* _rm_min_pq(process **heap, int size, int (*cmp) (process*, process*)) {
+  process *top = heap[1];
+
+  heap[1] = heap[size];
+  --size;
+  _sdown_pq(heap, size, 1, cmp);
+
+  return top;
+}
+
+void enpqueue(pqueue *pq, process *p) {
+  _insert_pq(p, pq->internal, pq->size, pq->cmp);
+  ++(pq->size);
+}
+
+process *depqueue(pqueue *pq) {
+  process *top;
+  
+  top = _rm_min_pq(pq->internal, pq->size, pq->cmp);
+  --(pq->size);
+  
+  return top;
+}
+
+void clear_pqueue(pqueue *pq) {
+  int i, size;
+
+  size = pq->size;
+  
+  for (i=0;i<size;++i) {
+    free_proc(pq->internal[i]);
+    pq->internal[i] = NULL;
+  }
+
+  pq->size = 0;
+}

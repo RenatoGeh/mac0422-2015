@@ -77,4 +77,22 @@ void clear_queue(queue *q);
 
 /* Priority queue. */
 
+typedef struct {
+  process **internal;
+  int size;
+  int capacity;
+  int (*cmp) (process*, process*);
+} pqueue;
+
+/* cmp(a, b): -1 se a < b, 0 se a == b, 1 se a > b. */
+pqueue *new_pqueue(int size, int (*cmp) (process*, process*));
+
+void free_pq(pqueue *pq);
+
+void enpqueue(pqueue *pq, process *p);
+
+process *depqueue(pqueue *pq);
+
+void clear_pqueue(pqueue *pq);
+
 #endif /* _UTILS_H_ */

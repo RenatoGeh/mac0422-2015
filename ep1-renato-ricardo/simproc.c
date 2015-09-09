@@ -43,12 +43,16 @@ int main(int argc, char *argv[]) {
 
   manager();
 
-
   while (p_queue->size > 0) {
     process *fst;
     fst = dequeue(p_queue);
     pthread_join(fst->id, NULL);
+    free_proc(fst);
   }
+
+  free_queue(p_queue);
+  free_queue(trace_procs);
+  free_queue(finished_procs);
 
   fclose(out_file);
 
@@ -108,16 +112,18 @@ void *process_thread(void *args) {
   ++n_threads;
   self = (process*) args;
   t_dt = self->dt;
-  self->status = 1;
+  self->status = -1;
   
   DEBUG("Processo [%s] entrou no sistema.\n", self->name);
-  
+ 
+  DEBUG("Processo [%s]: n_threads = %d, n_max_threads = %d.\n", self->name, n_threads, n_max_threads);
+  CPU_ZERO(&cpu_mask); 
   for (i=0;i<n_max_threads;++i)
     if (!cpu_mask_usage[i]) {
-      CPU_ZERO(&cpu_mask);
       CPU_SET(i, &cpu_mask);
       cpu_mask_usage[i] = 1;
       pthread_setaffinity_np(self->id, sizeof(cpu_mask), &cpu_mask);
+      DEBUG("Processo [%s] tem %d CPUs.\n", self->name, CPU_COUNT(&cpu_mask));
       DEBUG("Processo [%s] usando CPU [%d].\n", self->name, i);
       break;
     }
@@ -125,6 +131,7 @@ void *process_thread(void *args) {
   sem_post(&s_mutex);
 
   while (delta < t_dt) {
+    self->status = 1;
     i_clock = clock();
     delta += ((double)(clock()-i_clock))/((double)CLOCKS_PER_SEC);
   }
@@ -167,13 +174,56 @@ void fcfs_mgr(void) {
     
     sem_wait(&s_mutex);
     enqueue(p_queue, p);
-    sem_post(&s_mutex);
-
     pthread_create(&p->id, NULL, &process_thread, (void*) p);
+    sem_post(&s_mutex);
   }
 }
 
-void sjf_mgr(void) {}
+int cmp_sjf_pqueue(process *a, process *b) {
+  return (a->dt < b->dt)? -1 : (a->dt == b->dt)? 0 : 1;
+}
+
+void sjf_mgr(void) {
+  process *p, *top;
+
+  sjf_pqueue = new_pqueue(n_procs, &cmp_sjf_pqueue);
+
+  while (trace_procs->size > 0) {
+    p = dequeue(trace_procs);
+
+    while (p->t0 > thread_clock)
+      tick();
+ 
+    sem_wait(&s_mutex);
+
+    enpqueue(sjf_pqueue, p);
+    while (n_threads < n_max_threads && sjf_pqueue->size > 0) {
+      top = depqueue(sjf_pqueue);
+      enqueue(p_queue, top);
+      pthread_create(&top->id, NULL, &process_thread, (void*) top);
+    }    
+    
+    sem_post(&s_mutex);
+  }
+
+  while (sjf_pqueue->size > 0) {
+    while (n_threads >= n_max_threads)
+      tick();
+
+    sem_wait(&s_mutex);
+
+    while (n_threads < n_max_threads && sjf_pqueue->size > 0) {
+      top = depqueue(sjf_pqueue);
+      enqueue(p_queue, top);
+      pthread_create(&top->id, NULL, &process_thread, (void*) top);
+    }    
+    
+    sem_post(&s_mutex);
+  }
+
+  free_pq(sjf_pqueue);
+}
+
 void srtn_mgr(void) {}
 void robin_mgr(void) {}
 void pschedule_mgr(void) {}
