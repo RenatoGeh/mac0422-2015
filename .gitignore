@@ -1,3 +1,11 @@
+# LaTeX out files
+*.aux
+*.log
+*.nav
+*.snm
+*.toc
+*.vrb
+
 # Vim files
 *.swp
 

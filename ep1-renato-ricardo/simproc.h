@@ -39,6 +39,15 @@ int cmp_srtn_pqueue(process *a, process *b);
 /* Quantum em Round-Robin. */
 #define SCHED_QUANTUM 0.050
 
+/* Mutex para real-time lock. */
+pthread_mutex_t rt_lock[M_CPU_CORES];
+/* Cond para parada real-time. */
+pthread_cond_t rt_cond[M_CPU_CORES];
+/* Flag para indicar se esta rodando. 1 se rodando, 0 senao. */
+int *rt_thread_status[M_CPU_CORES];
+/* Deltas para contar quantum de cada thread. */
+double rt_thread_delta[M_CPU_CORES];
+
 /* Numero maximo de threads rodando ao mesmo tempo. */
 int n_max_threads;
 /* Numero de threads rodando. */
@@ -92,6 +101,9 @@ void (*thread_managers[6]) (void) = {
 
 /* Thread dos processos. */
 void *process_thread(void *args);
+
+/* Thread dos processos real-time. */
+void *process_thread_rt(void *args);
 
 /* Does a clock tick on the thread_clock. */
 void tick(void);

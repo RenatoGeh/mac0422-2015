@@ -25,7 +25,10 @@ process *new_proc(double t0, char *name, double dt, double deadline, int p) {
   inst->status = -1;
 
   inst->tr = inst->tf = -1;
-
+  
+  inst->using_cpu = -1;
+  inst->cpu_queue_pos = -1;
+    
   return inst;
 }
 
@@ -92,6 +95,18 @@ void clear_queue(queue *q) {
 
   q->_start = q->_end = 0;
   q->size = 0;
+}
+
+int queue_start(queue *q) {
+  return q->_start;
+}
+
+int queue_end(queue *q) {
+  return q->_end;
+}
+
+void queue_incr(queue *q, int *it) {
+  *it = (*it + 1) % q->capacity;
 }
 
 /* Priority queue. */

@@ -159,9 +159,8 @@ void *process_thread(void *args) {
   clock_t i_clock;
   double delta = 0, t_dt;
 
+  /* Comeca secao critica. */
   sem_wait(&s_mutex);
-
-  /* Seção crítica*/
 
   self = (process*) args;
   t_dt = self->dt;
@@ -169,6 +168,7 @@ void *process_thread(void *args) {
   
   DEBUG("Processo [%s] entrou no sistema.\n", self->name);
   
+  /* Termina seção crítica. */
   sem_post(&s_mutex);
 
   /* Calcula o tempo real que o processo esta sendo processado */
@@ -178,9 +178,8 @@ void *process_thread(void *args) {
     delta += ((double)(clock()-i_clock))/((double)CLOCKS_PER_SEC);
   }
 
+  /* Comeca secao critica. */
   sem_wait(&s_mutex);
-
-  /* Seção crítica */
 
   /* Marca o tempo que o processo acabou e o tempo de duração */
   self->tf = ((double)(clock()-g_clock))/((double)CLOCKS_PER_SEC);
@@ -195,9 +194,70 @@ void *process_thread(void *args) {
       self->name, self->name, self->tf, self->tr);
   fprintf(out_file, "%s %f %f\n", self->name, self->tf, self->tr);
 
+  /* Termina secao critica. */
   sem_post(&s_mutex);
 
   return NULL;
+}
+
+void *process_thread_rt(void *args) {
+  process *self;
+  clock_t i_clock;
+  double delta = 0, t_dt;
+  int self_using_cpu, self_cpu_queue_pos;
+
+  /* Comeca secao critica. */
+  sem_wait(&s_mutex);
+
+  self = (process*) args;
+  t_dt = self->dt;
+  self->status = -1;
+  self_using_cpu = self->using_cpu;
+  self_cpu_queue_pos = self->cpu_queue_pos;
+
+  DEBUG("Processo [%s] entrou no sistema.\n", self->name);
+  
+  /* Termina seção crítica. */
+  sem_post(&s_mutex);
+
+  while (delta < t_dt) {
+    double real_dt;
+
+    self->status = 1;
+    i_clock = clock();
+    
+    real_dt = ((double)(clock()-i_clock))/((double)CLOCKS_PER_SEC);
+
+    delta += real_dt;
+    rt_thread_delta[self_using_cpu] += real_dt;
+
+    pthread_mutex_lock(&rt_lock[self_using_cpu]);
+    while (!rt_thread_status[self_using_cpu][self_cpu_queue_pos])
+      pthread_cond_wait(&rt_cond[self_using_cpu], &rt_lock[self_using_cpu]);
+    pthread_mutex_unlock(&rt_lock[self_using_cpu]);
+  }
+
+  /* Comeca secao critica. */
+  sem_wait(&s_mutex);
+
+  /* Marca o tempo que o processo acabou e o tempo de duração */
+  self->tf = ((double)(clock()-g_clock))/((double)CLOCKS_PER_SEC);
+  self->tr = self->tf-self->t0;
+  self->status = 0;
+
+  enqueue(finished_procs, self);
+  detach_thread_affinity(self); 
+  --n_threads;  
+
+  DEBUG("Processo [%s] finalizando e imprimindo linha [\"%s %f %f\"] na saida.\n",
+      self->name, self->name, self->tf, self->tr);
+  fprintf(out_file, "%s %f %f\n", self->name, self->tf, self->tr);
+
+  /* Termina secao critica. */
+  sem_post(&s_mutex);
+
+  return NULL;
+
 }
 
 /* First-Come First-Served */
@@ -220,6 +280,7 @@ void fcfs_mgr(void) {
     ++n_threads;
     pthread_create(&p->id, NULL, &process_thread, (void*) p);
     attach_thread_affinity(-1, p);
+
     sem_post(&s_mutex); 
   }
 }
@@ -339,7 +400,19 @@ void srtn_mgr(void) {
 
 void robin_mgr(void) {
   process *p;
-  int min, i;
+  int min, i, j;
+  int each_cpu;
+
+  each_cpu = n_procs/n_max_threads + 1;
+  /* Lista de fila de processos. */
+  queue *cpu_dist[M_CPU_CORES];
+  for (i=0;i<n_max_threads;++i) {
+    cpu_dist[i] = new_queue(each_cpu);
+    pthread_mutex_init(&rt_lock[i], NULL);
+    pthread_cond_init(&rt_cond[i], NULL);
+    rt_thread_status[i] = (int*) malloc(each_cpu*sizeof(int));
+    rt_thread_delta[i] = 0;
+  }
 
   while (trace_procs->size > 0) {
     p = dequeue(trace_procs);
@@ -348,11 +421,45 @@ void robin_mgr(void) {
       tick();
 
     min = cpu_mask_usage[0];
+    j = 0;
     for (i=1;i<n_max_threads;++i)
-      if (cpu_mask_usage[i] < min)
+      if (cpu_mask_usage[i] < min) {
         min = cpu_mask_usage[i];
+        j = i;
+      }
 
-       
+    sem_wait(&s_mutex);
+
+    enqueue(cpu_dist[j], p);
+    enqueue(p_queue, p);
+    
+    pthread_create(&p->id, NULL, &process_thread_rt, (void*) p);
+
+    attach_thread_affinity(j, p);
+    
+    sem_post(&s_mutex);
+
+    for (i=0;i<n_max_threads;++i)
+      if (rt_thread_delta[i] > SCHED_QUANTUM) {
+        pthread_mutex_lock(&rt_lock[i]);
+        for (j=0;j<cpu_mask_usage[i];++j) {
+          /* Processo j esta rodando na CPU i. */
+          if (rt_thread_status[i][j])
+            rt_thread_status[i][j] = 0;
+          else {
+            rt_thread_status[i][j] = 1;
+            pthread_cond_signal(&rt_cond[i]);
+          }
+        }
+        rt_thread_delta[i] = 0;
+        pthread_mutex_unlock(&rt_lock[i]);
+      }
+
+  }
+
+  for (i=0;i<n_max_threads;++i) {
+    free_queue(cpu_dist[i]);
+    free(rt_thread_status[i]);
   }
 }
 
