@@ -31,6 +31,11 @@ pqueue *sjf_pqueue;
 /* Funcao de comparacao para sjf_pqueue. */
 int cmp_sjf_pqueue(process *a, process *b);
 
+/* Priority queue para processos com menor tempo restante. */
+pqueue *srtn_pqueue;
+/* Funcao de comparacao para srtn_pqueue. */
+int cmp_srtn_pqueue(process *a, process *b);
+
 /* Numero maximo de threads rodando ao mesmo tempo. */
 int n_max_threads;
 /* Numero de threads rodando. */

@@ -224,7 +224,58 @@ void sjf_mgr(void) {
   free_pq(sjf_pqueue);
 }
 
-void srtn_mgr(void) {}
+int cmp_srtn_pqueue(process *a, process *b) {
+  int a_val, b_val;
+
+  a_val = a->deadline-thread_clock;
+  b_val = b->deadline-thread_clock;
+
+  return (a_val < b_val)? -1 : (a_val == b_val)? 0 : 1;
+}
+
+void srtn_mgr(void) {
+  process *p, *top;
+
+  srtn_pqueue = new_pqueue(n_procs, &cmp_srtn_pqueue);
+
+  while (trace_procs->size > 0) {
+    p = dequeue(trace_procs);
+
+    while (p->t0 > thread_clock)
+      tick();
+ 
+    sem_wait(&s_mutex);
+
+    enpqueue(srtn_pqueue, p);
+    while (n_threads < n_max_threads && srtn_pqueue->size > 0) {
+      top = depqueue(srtn_pqueue);
+      enqueue(p_queue, top);
+      ++n_threads;
+      pthread_create(&top->id, NULL, &process_thread, (void*) top);
+    }    
+    
+    sem_post(&s_mutex);
+  }
+
+  while (srtn_pqueue->size > 0) {
+    while (n_threads >= n_max_threads)
+      tick();
+
+    sem_wait(&s_mutex);
+
+    while (n_threads < n_max_threads && srtn_pqueue->size > 0) {
+      top = depqueue(srtn_pqueue);
+      enqueue(p_queue, top);
+      ++n_threads;
+      pthread_create(&top->id, NULL, &process_thread, (void*) top);
+    }    
+    
+    sem_post(&s_mutex);
+  }
+
+  free_pq(srtn_pqueue);
+}
+
 void robin_mgr(void) {}
 void pschedule_mgr(void) {}
 void rdeadline_mgr(void) {}
