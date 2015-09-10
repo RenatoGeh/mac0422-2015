@@ -121,7 +121,7 @@ int run_cmd(int cmd_index, char *args[]) {
       else if (args[1][0] == '.') {
         if (args[1][1] == '.') {
           /* Volta apenas UM diretorio acima. */
-          char *l = c = path+1;
+          char *c, *l = c = path+1;
 
           /* Acha o ultimo diretorio de path. */
           while (*c!='\0') {

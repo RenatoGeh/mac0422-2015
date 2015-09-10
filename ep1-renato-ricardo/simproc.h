@@ -36,6 +36,9 @@ pqueue *srtn_pqueue;
 /* Funcao de comparacao para srtn_pqueue. */
 int cmp_srtn_pqueue(process *a, process *b);
 
+/* Quantum em Round-Robin. */
+#define SCHED_QUANTUM 0.050
+
 /* Numero maximo de threads rodando ao mesmo tempo. */
 int n_max_threads;
 /* Numero de threads rodando. */

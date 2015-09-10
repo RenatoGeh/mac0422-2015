@@ -100,12 +100,53 @@ process *get_ready_proc(void) {
   return NULL;
 }*/
 
+/* Se -1, entao vai tentar achar por si proprio qualquer um que esteja sem nada pra fazer.
+ * Senao entra na CPU dada.
+ */
+int set_thread_affinity(int cpu_i, process *p) {
+  cpu_set_t cpu_mask;
+  int i;
+
+  CPU_ZERO(&cpu_mask);
+
+  if (cpu_i < 0) {
+    for (i=0;i<n_max_threads;++i)
+      if (!cpu_mask_usage[i]) {
+        CPU_SET(i, &cpu_mask);
+        ++cpu_mask_usage[i];
+        pthread_setaffinity_np(p->id, sizeof(cpu_mask), &cpu_mask);
+        DEBUG("Processo [%s] usando CPU [%d].\n", p->name, i);
+        return i;
+      }
+  } else {
+    CPU_SET(cpu_i, &cpu_mask);
+    ++cpu_mask_usage[cpu_i];
+    pthread_setaffinity_np(p->id, sizeof(cpu_mask), &cpu_mask);
+    DEBUG("Processo [%s] usando CPU [%d].\n", p->name, i);
+  }
+
+  return cpu_i;
+} 
+
+int get_thread_affinity(process *p) {
+  cpu_set_t cpu_mask;
+  int i, k=-1;
+
+  pthread_getaffinity_np(p->id, sizeof(cpu_mask), &cpu_mask);
+  for (i=0;i<M_CPU_CORES;++i)
+    if (CPU_ISSET(i, &cpu_mask)) {
+      --cpu_mask_usage[i];
+      DEBUG("Process [%s] liberando CPU [%d].\n", p->name, i);
+      k = i;
+    }
+
+  return k;
+}
+
 void *process_thread(void *args) {
   process *self;
   clock_t i_clock;
   double delta = 0, t_dt;
-  cpu_set_t cpu_mask;
-  int i;
 
   sem_wait(&s_mutex);
 
@@ -114,16 +155,6 @@ void *process_thread(void *args) {
   self->status = -1;
   
   DEBUG("Processo [%s] entrou no sistema.\n", self->name);
- 
-  CPU_ZERO(&cpu_mask); 
-  for (i=0;i<n_max_threads;++i)
-    if (!cpu_mask_usage[i]) {
-      CPU_SET(i, &cpu_mask);
-      cpu_mask_usage[i] = 1;
-      pthread_setaffinity_np(self->id, sizeof(cpu_mask), &cpu_mask);
-      DEBUG("Processo [%s] usando CPU [%d].\n", self->name, i);
-      break;
-    }
 
   sem_post(&s_mutex);
 
@@ -140,12 +171,7 @@ void *process_thread(void *args) {
   self->status = 0;
 
   enqueue(finished_procs, self);
-  pthread_getaffinity_np(self->id, sizeof(cpu_mask), &cpu_mask);
-  for (i=0;i<M_CPU_CORES;++i)
-    if (CPU_ISSET(i, &cpu_mask)) {
-      cpu_mask_usage[i] = 0;
-      DEBUG("Process [%s] liberando CPU [%d].\n", self->name, i);
-    }
+  get_thread_affinity(self); 
   --n_threads;  
 
   DEBUG("Processo [%s] finalizando e imprimindo linha [\"%s %f %f\"] na saida.\n",
@@ -173,6 +199,7 @@ void fcfs_mgr(void) {
     enqueue(p_queue, p);
     ++n_threads;
     pthread_create(&p->id, NULL, &process_thread, (void*) p);
+    set_thread_affinity(-1, p);
     sem_post(&s_mutex); 
   }
 }
@@ -200,6 +227,7 @@ void sjf_mgr(void) {
       enqueue(p_queue, top);
       ++n_threads;
       pthread_create(&top->id, NULL, &process_thread, (void*) top);
+      set_thread_affinity(-1, top);
     }    
     
     sem_post(&s_mutex);
@@ -216,6 +244,7 @@ void sjf_mgr(void) {
       enqueue(p_queue, top);
       ++n_threads;
       pthread_create(&top->id, NULL, &process_thread, (void*) top);
+      set_thread_affinity(-1, top);
     }    
     
     sem_post(&s_mutex);
@@ -252,6 +281,7 @@ void srtn_mgr(void) {
       enqueue(p_queue, top);
       ++n_threads;
       pthread_create(&top->id, NULL, &process_thread, (void*) top);
+      set_thread_affinity(-1, top);
     }    
     
     sem_post(&s_mutex);
@@ -268,6 +298,7 @@ void srtn_mgr(void) {
       enqueue(p_queue, top);
       ++n_threads;
       pthread_create(&top->id, NULL, &process_thread, (void*) top);
+      set_thread_affinity(-1, top);
     }    
     
     sem_post(&s_mutex);
@@ -276,7 +307,19 @@ void srtn_mgr(void) {
   free_pq(srtn_pqueue);
 }
 
-void robin_mgr(void) {}
+void robin_mgr(void) {
+  process *p;
+
+  while (trace_procs->size > 0) {
+    p = dequeue(trace_procs);
+
+    while (p->t0 < thread_clock)
+      tick();
+
+   
+  }
+}
+
 void pschedule_mgr(void) {}
 void rdeadline_mgr(void) {}
 
