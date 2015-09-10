@@ -28,7 +28,7 @@ typedef struct {
   double deadline;
   /* Prioridade. */
   int p;
-  /* 1 se esta rodando, 0 se ja foi rodado, -1 se ainda precisa rodar. */
+  /* 1 se esta rodando, 0 se ja foi rodado por completo, -1 se ainda precisa rodar. */
   int status;
   /* Membros abaixo daqui sao usados para retorno da thread quando acabado. */
   /* Quando terminou. */
