@@ -42,13 +42,13 @@
 
 \begin{frame}
   \frametitle{Shell}
-  No shell ep1sh, além das diversas funções para utilidades, como \texttt{extract\_args} e \texttt{cmd\_exists}, as duas funções mais importantes eram \texttt{run\_cmd} e \texttt{run\_ext\_cmd}, que cuidavam
+  No shell ep1sh, além das diversas funções para utilidades, como \texttt{extract\_args} e \texttt{cmd\_exists}, as duas funções mais importantes são \texttt{run\_cmd} e \texttt{run\_ext\_cmd}, que cuidam
   da execução dos comandos.
 \end{frame}
 
 \begin{frame}
   \frametitle{\texttt{run\_cmd}}
-  \texttt{run\_cmd} roda os comandos embutidos (\texttt{cd}, \texttt{pwd} e \texttt{exit}). Nessa função foi feita manualmente apenas \texttt{cd}, já que em \texttt{pwd} podíamos apenas chamar
+  \texttt{run\_cmd} roda os comandos embutidos (\texttt{cd}, \texttt{pwd} e \texttt{exit}), este último adicionado para facilitar os testes durante a produção do EP. Nessa função foi feita manualmente apenas \texttt{cd}, já que em \texttt{pwd} podíamos apenas chamar
   \texttt{getcwd} e em seguida imprimirmos na saída padrão, e em \texttt{exit} podemos chamar apenas \texttt{exit(EXIT\_SUCCESS)}. Foram implementados os símbolos especiais \texttt{..}, \texttt{\~} e \texttt{\textbackslash} em
   \texttt{cd}.
 \end{frame}
@@ -70,7 +70,7 @@
 
 \begin{frame}
   \frametitle{\texttt{cmd\_exists}}
-  Verifica se o comando que o usuário deseja executar é um comando embutido no shell. Se for, roda-se \texttt{run\_cmd}, senão precisamos rodar \texttt{run\_ext\_cmd}.
+  Verifica se o comando que o usuário deseja executar é um comando embutido no shell (\textttt{cd}, \textttt{pwd} ou \textttt{exit}). Se for, roda-se \texttt{run\_cmd}, senão precisamos rodar \texttt{run\_ext\_cmd}.
 \end{frame}
 
 %------------------------------------------------
@@ -81,6 +81,13 @@
   
   \textbf{Importante:} a linha lida é então inutilizada, já que usa \texttt{strtok}. Em \texttt{main}, a cada iteração liberamos a memória alocada na variável da linha lida.
 \end{frame}
+%------------------------------------------------
+
+\begin{frame}
+    \frametitle{history}
+    Por último utilizamos as bibliotecas readline e GNU history, as quais auxiliam para que nosso shell se comporte como o prompt do linux (as setas direcionais auxiliam na edição do texto)
+
+\end{frame}
 
 %------------------------------------------------
 \section{simproc}
@@ -88,7 +95,7 @@
 
 \begin{frame}
   \frametitle{Simulador de processos}
-  Para facilitar o trabalho da implementação, foram criados dois arquivos: \texttt{utils.c} e \texttt{utils.h}. Nesses arquivos foram criados filas, filas de prioridade e uma estrutura para o processo. \\~\\
+  Para facilitar o trabalho da implementação do nosso Simulador de Processos, criamos dois arquivos: \texttt{utils.c} e \texttt{utils.h}. Nesses arquivos foram criados filas, filas de prioridade e uma estrutura para o processo. \\~\\
 
   Filas foram implementadas num vetor de forma cíclica para melhorar a complexidade. Filas de prioridade foram implementadas como heaps. Chamamos de \texttt{thread\_clock} o tempo de execução do escalonador.
 \end{frame}
@@ -97,9 +104,9 @@
 
 \begin{frame}
   \frametitle{Escalonadores}
-  Para ser mais fácil de se escolher qual escalonador usar, a variável \texttt{manager} é um ponteiro para função. Os argumentos de linha de comando são lidos e a função é atribuída a \texttt{manager} em seguida. \\~\\
+  Para ser mais fácil de se escolher qual escalonador usar, criamos a variável \texttt{manager}, que é um ponteiro para função. Os argumentos de linha de comando são lidos e a função é atribuída a \texttt{manager} em seguida. \\~\\
 
-  Além disso alguns escalonadores tem filas de prioridade que outras não precisam. Por isso algumas filas não são nunca utilizadas se usarmos certo escalonador.
+  Além disso alguns escalonadores utilizam filas de prioridade que outros não precisam. Por isso algumas filas nunca são utilizadas se usarmos certo escalonador.
 \end{frame}
 
 %------------------------------------------------
@@ -117,7 +124,9 @@
 
 \begin{frame}
   \frametitle{First-Come First-Serve (FCFS)}
-  Este escalonador usa apenas filas. Quando o \texttt{thread\_clock} chega no instante \texttt{t0} de um processo, se há alguma CPU não utilizada, o processo é atribuído àquela CPU.
+  Este escalonador usa apenas filas. Quando o \texttt{thread\_clock} chega no instante \texttt{t0} de um processo, se há alguma CPU não utilizada, o processo é atribuído àquela CPU. \\~\\
+
+  O processo permanece na CPU até terminar.
 \end{frame}
 
 %----------------------------------------------------------------------------------------
@@ -126,7 +135,7 @@
   \frametitle{Shortest Job First (SJF)}
   Este escalonador usa uma fila de prioridade com critério de comparação igual a relação de grandeza entre os \texttt{dt}s de cada processo concorrente. \\~\\
 
-  Se não há CPU disponível, o processo entra na fila de prioridade e espera ter CPU livre.
+  Se não há CPU disponível, o processo entra na fila de prioridade e espera ter uma CPU livre.
 \end{frame}
 
 %----------------------------------------------------------------------------------------
