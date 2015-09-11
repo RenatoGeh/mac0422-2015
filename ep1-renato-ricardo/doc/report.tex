@@ -70,7 +70,7 @@
 
 \begin{frame}
   \frametitle{\texttt{cmd\_exists}}
-  Verifica se o comando que o usuário deseja executar é um comando embutido no shell (\textttt{cd}, \textttt{pwd} ou \textttt{exit}). Se for, roda-se \texttt{run\_cmd}, senão precisamos rodar \texttt{run\_ext\_cmd}.
+  Verifica se o comando que o usuário deseja executar é um comando embutido no shell (\texttt{cd}, \texttt{pwd} ou \texttt{exit}). Se for, roda-se \texttt{run\_cmd}, senão precisamos rodar \texttt{run\_ext\_cmd}.
 \end{frame}
 
 %------------------------------------------------
@@ -152,6 +152,31 @@
   Este escalonador disponibiliza um quantum de tempo para cada processo em cada CPU trabalhando. No \texttt{simproc} usamos um quantum \texttt{SCHED\_QUANTUM=0.050} segundos. \\~\\
 
   Usou-se \texttt{pthread\_cond\_t} e \texttt{pthread\_mutex\_t} para mandar sinais para suspender ou resumir o thread.
+\end{frame}
+
+\section{comparação}
+
+\begin{frame}
+  \frametitle{Comparações}
+  Veremos algumas comparações entre os diferentes escalonadores.
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.25]{table1.jpg}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.15]{table2.jpg}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.25]{table3.jpg}
+\end{figure}
 \end{frame}
 
 \end{document}

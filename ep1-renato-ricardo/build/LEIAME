@@ -1,0 +1,28 @@
+MAC0422 - ep1sh e simproc
+
+Renato Lui Geh  - 8536030
+Ricardo Fonseca - 8536131
+
+ep1sh - Shell
+simproc - Simulador de processos
+
+Para compilar:
+  - todos binários:
+      make
+  - ep1sh
+      make ep1sh
+  - simproc
+      make simproc
+
+A variável DEBUG no Makefile compila com -g ao invés de -O2.
+
+Para rodar:
+  - ep1sh
+    ./ep1sh
+  - simproc
+    ./simproc n trace_file out_file [d]
+
+Onde n é o número do escalonador usado, trace_file é o arquivo de trace, out_file é o arquivo de
+saída e d é o argumento opcional de debug.
+
+
