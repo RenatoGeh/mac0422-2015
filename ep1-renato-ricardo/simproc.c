@@ -20,11 +20,14 @@
 #include <semaphore.h>
 
 #include "utils.h"
+int proc_feitos;
 
 int main(int argc, char *argv[]) {
   /* Thread para gerenciar outros threads. */
   void (*manager) (void);
   
+  proc_feitos = 0;
+
   parse(argv[2]);
   out_file = fopen(argv[3], "w");
   debug_mode = argc==5 && argv[4][0]=='d';
@@ -63,7 +66,7 @@ int main(int argc, char *argv[]) {
   fclose(out_file);
 
   sem_destroy(&s_mutex);
-
+  printf("\n~ %d ~\n", proc_feitos);
   return 0;
 }
 
@@ -193,6 +196,8 @@ void *process_thread(void *args) {
   DEBUG("Processo [%s] finalizando e imprimindo linha [\"%s %f %f\"] na saida.\n",
       self->name, self->name, self->tf, self->tr);
   fprintf(out_file, "%s %f %f\n", self->name, self->tf, self->tr);
+  if (self->tf <= self->deadline)
+    ++proc_feitos;
 
   /* Termina secao critica. */
   sem_post(&s_mutex);
