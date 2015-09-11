@@ -1,0 +1,10 @@
+0 proc0 7 19 1
+1 proc1 7 54 10
+2 proc2 9 49 9
+3 proc3 7 43 -8
+4 proc4 2 19 -9
+4 proc5 4 28 -4
+4 proc6 2 42 -9
+4 proc7 3 20 10
+5 proc8 3 27 -17
+5 proc9 1 7 -10
