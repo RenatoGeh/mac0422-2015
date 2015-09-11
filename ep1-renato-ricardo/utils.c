@@ -135,7 +135,7 @@ void _insert_pq(process *np, process **heap, int size, int (*cmp) (process*, pro
   i = size + 1;
   heap[i] = np;
   
-  while (cmp(heap[i], heap[i/2]) < 0 && i > 1) {
+  while (i > 1 && cmp(heap[i], heap[i/2]) < 0) {
     tmp = heap[i];
     heap[i] = heap[i/2];
     heap[i/2] = tmp;

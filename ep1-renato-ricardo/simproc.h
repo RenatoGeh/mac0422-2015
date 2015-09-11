@@ -38,6 +38,8 @@ int cmp_srtn_pqueue(process *a, process *b);
 
 /* Quantum em Round-Robin. */
 #define SCHED_QUANTUM 0.050
+/* Lista de lista de processos. */
+process **cpu_dist[M_CPU_CORES];
 
 /* Mutex para real-time lock. */
 pthread_mutex_t rt_lock[M_CPU_CORES];
@@ -47,6 +49,9 @@ pthread_cond_t rt_cond[M_CPU_CORES];
 int *rt_thread_status[M_CPU_CORES];
 /* Deltas para contar quantum de cada thread. */
 double rt_thread_delta[M_CPU_CORES];
+
+/* Numero de mudanças de contexto. */
+int context_change = 0;
 
 /* Numero maximo de threads rodando ao mesmo tempo. */
 int n_max_threads;

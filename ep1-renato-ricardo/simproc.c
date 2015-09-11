@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   sem_init(&s_mutex, 0, 1);
 
   /* Pela entrada defini qual escalonador vai usar */
-  manager = thread_managers[atoi(argv[1]-1)];
+  manager = thread_managers[atoi(argv[1])-1];
   thread_clock = 0;
   g_clock = clock();
 
@@ -133,7 +133,7 @@ int attach_thread_affinity(int cpu_i, process *p) {
     CPU_SET(cpu_i, &cpu_mask);
     ++cpu_mask_usage[cpu_i];
     pthread_setaffinity_np(p->id, sizeof(cpu_mask), &cpu_mask);
-    DEBUG("Processo [%s] usando CPU [%d].\n", p->name, i);
+    DEBUG("Processo [%s] usando CPU [%d].\n", p->name, cpu_i);
   }
 
   return cpu_i;
@@ -229,7 +229,11 @@ void *process_thread_rt(void *args) {
     real_dt = ((double)(clock()-i_clock))/((double)CLOCKS_PER_SEC);
 
     delta += real_dt;
+
+    sem_wait(&s_mutex);
     rt_thread_delta[self_using_cpu] += real_dt;
+    printf("%f\n", rt_thread_delta[self_using_cpu]);
+    sem_post(&s_mutex);
 
     pthread_mutex_lock(&rt_lock[self_using_cpu]);
     while (!rt_thread_status[self_using_cpu][self_cpu_queue_pos])
@@ -247,6 +251,7 @@ void *process_thread_rt(void *args) {
 
   enqueue(finished_procs, self);
   detach_thread_affinity(self); 
+  cpu_dist[self_using_cpu][self_cpu_queue_pos] = NULL;
   --n_threads;  
 
   DEBUG("Processo [%s] finalizando e imprimindo linha [\"%s %f %f\"] na saida.\n",
@@ -404,22 +409,26 @@ void robin_mgr(void) {
   int each_cpu;
 
   each_cpu = n_procs/n_max_threads + 1;
-  /* Lista de fila de processos. */
-  queue *cpu_dist[M_CPU_CORES];
   for (i=0;i<n_max_threads;++i) {
-    cpu_dist[i] = new_queue(each_cpu);
+    cpu_dist[i] = (process**) malloc(each_cpu*sizeof(process*));
+    for (j=0;j<each_cpu;++j)
+      cpu_dist[i][j] = NULL;
     pthread_mutex_init(&rt_lock[i], NULL);
     pthread_cond_init(&rt_cond[i], NULL);
     rt_thread_status[i] = (int*) malloc(each_cpu*sizeof(int));
+    for (j=0;j<each_cpu;++j)
+      rt_thread_status[i][j] = 0;
     rt_thread_delta[i] = 0;
   }
-
+  
   while (trace_procs->size > 0) {
     p = dequeue(trace_procs);
 
     while (p->t0 < thread_clock)
       tick();
 
+    sem_wait(&s_mutex);
+    
     min = cpu_mask_usage[0];
     j = 0;
     for (i=1;i<n_max_threads;++i)
@@ -428,9 +437,13 @@ void robin_mgr(void) {
         j = i;
       }
 
-    sem_wait(&s_mutex);
-
-    enqueue(cpu_dist[j], p);
+    for (i=0;i<each_cpu;++i)
+      if (cpu_dist[j][i] == NULL) {
+        cpu_dist[j][i] = p;
+        p->cpu_queue_pos = i;
+        break;
+      } 
+    
     enqueue(p_queue, p);
     
     pthread_create(&p->id, NULL, &process_thread_rt, (void*) p);
@@ -441,16 +454,65 @@ void robin_mgr(void) {
 
     for (i=0;i<n_max_threads;++i)
       if (rt_thread_delta[i] > SCHED_QUANTUM) {
+        puts("nonono");
         pthread_mutex_lock(&rt_lock[i]);
-        for (j=0;j<cpu_mask_usage[i];++j) {
-          /* Processo j esta rodando na CPU i. */
-          if (rt_thread_status[i][j])
-            rt_thread_status[i][j] = 0;
-          else {
-            rt_thread_status[i][j] = 1;
-            pthread_cond_signal(&rt_cond[i]);
+        for (j=0;j<cpu_mask_usage[i];++j)
+          if (cpu_dist[i][j] != NULL) {
+            /* Processo j esta rodando na CPU i. */
+            if (rt_thread_status[i][j]) {
+              int tmp = (i+1)%each_cpu;
+
+              rt_thread_status[i][j] = 0;
+              
+              for (;tmp!=i;tmp=(tmp+1)%each_cpu)
+                if (cpu_dist[i][tmp] != NULL) {
+                  rt_thread_status[i][tmp] = 1;
+                  break;
+                }
+
+              DEBUG("Mudança de contexto [%d]: [%s] -> [%s].\n", 
+                  ++context_change, cpu_dist[i][j]->name, cpu_dist[i][tmp]->name);
+              break;
+            }
           }
-        }
+        pthread_cond_signal(&rt_cond[i]);
+        rt_thread_delta[i] = 0;
+        pthread_mutex_unlock(&rt_lock[i]);
+      }
+
+  }
+
+  while (1) {
+    int k = 0;
+    for (i=0;i<n_max_threads;++i)
+      k += cpu_mask_usage[i];
+    /* Nao tem mais nenhum processo rodando. */
+    if (k == 0)
+      break;
+
+    for (i=0;i<n_max_threads;++i)
+      if (rt_thread_delta[i] > SCHED_QUANTUM) {
+        pthread_mutex_lock(&rt_lock[i]);
+        for (j=0;j<cpu_mask_usage[i];++j)
+          if (cpu_dist[i][j] != NULL) {
+            /* Processo j esta rodando na CPU i. */
+            if (rt_thread_status[i][j]) {
+              int tmp = (i+1)%each_cpu;
+
+              rt_thread_status[i][j] = 0;
+              
+              for (;tmp!=i;tmp=(tmp+1)%each_cpu)
+                if (cpu_dist[i][tmp] != NULL) {
+                  rt_thread_status[i][tmp] = 1;
+                  break;              
+                }
+
+              DEBUG("Mudança de contexto [%d]: [%s] -> [%s].\n", 
+                  ++context_change, cpu_dist[i][j]->name, cpu_dist[i][tmp]->name);
+              break;
+            }
+          }
+        pthread_cond_signal(&rt_cond[i]);
         rt_thread_delta[i] = 0;
         pthread_mutex_unlock(&rt_lock[i]);
       }
@@ -458,7 +520,7 @@ void robin_mgr(void) {
   }
 
   for (i=0;i<n_max_threads;++i) {
-    free_queue(cpu_dist[i]);
+    free(cpu_dist[i]);
     free(rt_thread_status[i]);
   }
 }
