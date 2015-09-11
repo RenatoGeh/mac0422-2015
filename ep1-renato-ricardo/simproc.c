@@ -129,6 +129,7 @@ int attach_thread_affinity(int cpu_i, process *p) {
         CPU_SET(i, &cpu_mask);
         ++cpu_mask_usage[i];
         pthread_setaffinity_np(p->id, sizeof(cpu_mask), &cpu_mask);
+        p->using_cpu = i;
         DEBUG("Processo [%s] usando CPU [%d].\n", p->name, i);
         return i;
       }
@@ -136,6 +137,7 @@ int attach_thread_affinity(int cpu_i, process *p) {
     CPU_SET(cpu_i, &cpu_mask);
     ++cpu_mask_usage[cpu_i];
     pthread_setaffinity_np(p->id, sizeof(cpu_mask), &cpu_mask);
+    p->using_cpu = cpu_i;
     DEBUG("Processo [%s] usando CPU [%d].\n", p->name, cpu_i);
   }
 
@@ -237,10 +239,11 @@ void *process_thread_rt(void *args) {
 
     sem_wait(&s_mutex);
     rt_thread_delta[self_using_cpu] += real_dt;
-    printf("%f\n", rt_thread_delta[self_using_cpu]);
+    /* printf("%f\n", rt_thread_delta[self_using_cpu]); */
     sem_post(&s_mutex);
 
     pthread_mutex_lock(&rt_lock[self_using_cpu]);
+    /* printf("st[%d][%d]: %d\n", self_using_cpu, self_cpu_queue_pos, rt_thread_status[self_using_cpu][self_cpu_queue_pos]); */
     while (!rt_thread_status[self_using_cpu][self_cpu_queue_pos])
       pthread_cond_wait(&rt_cond[self_using_cpu], &rt_lock[self_using_cpu]);
     pthread_mutex_unlock(&rt_lock[self_using_cpu]);
@@ -422,7 +425,7 @@ void robin_mgr(void) {
     pthread_cond_init(&rt_cond[i], NULL);
     rt_thread_status[i] = (int*) malloc(each_cpu*sizeof(int));
     for (j=0;j<each_cpu;++j)
-      rt_thread_status[i][j] = 0;
+      rt_thread_status[i][j] = j==0?1:0;
     rt_thread_delta[i] = 0;
   }
   
@@ -446,6 +449,7 @@ void robin_mgr(void) {
       if (cpu_dist[j][i] == NULL) {
         cpu_dist[j][i] = p;
         p->cpu_queue_pos = i;
+        p->using_cpu = j;
         break;
       } 
     
@@ -459,17 +463,16 @@ void robin_mgr(void) {
 
     for (i=0;i<n_max_threads;++i)
       if (rt_thread_delta[i] > SCHED_QUANTUM) {
-        puts("nonono");
         pthread_mutex_lock(&rt_lock[i]);
         for (j=0;j<cpu_mask_usage[i];++j)
           if (cpu_dist[i][j] != NULL) {
             /* Processo j esta rodando na CPU i. */
             if (rt_thread_status[i][j]) {
-              int tmp = (i+1)%each_cpu;
+              int tmp = (j+1)%each_cpu;
 
               rt_thread_status[i][j] = 0;
               
-              for (;tmp!=i;tmp=(tmp+1)%each_cpu)
+              for (;tmp!=j;tmp=(tmp+1)%each_cpu)
                 if (cpu_dist[i][tmp] != NULL) {
                   rt_thread_status[i][tmp] = 1;
                   break;
@@ -502,11 +505,11 @@ void robin_mgr(void) {
           if (cpu_dist[i][j] != NULL) {
             /* Processo j esta rodando na CPU i. */
             if (rt_thread_status[i][j]) {
-              int tmp = (i+1)%each_cpu;
+              int tmp = (j+1)%each_cpu;
 
               rt_thread_status[i][j] = 0;
               
-              for (;tmp!=i;tmp=(tmp+1)%each_cpu)
+              for (;tmp!=j;tmp=(tmp+1)%each_cpu)
                 if (cpu_dist[i][tmp] != NULL) {
                   rt_thread_status[i][tmp] = 1;
                   break;              

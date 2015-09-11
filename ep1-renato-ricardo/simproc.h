@@ -37,7 +37,7 @@ pqueue *srtn_pqueue;
 int cmp_srtn_pqueue(process *a, process *b);
 
 /* Quantum em Round-Robin. */
-#define SCHED_QUANTUM 0.050
+#define SCHED_QUANTUM 0.10
 /* Lista de lista de processos. */
 process **cpu_dist[M_CPU_CORES];
 
