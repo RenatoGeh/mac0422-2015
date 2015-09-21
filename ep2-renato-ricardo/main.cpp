@@ -1,6 +1,9 @@
 #include "mem_mgr.hpp"
 
 #include <cstdio>
+#include <cstring>
+#include <cstdlib>
+
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <unistd.h>
@@ -16,12 +19,19 @@ int main(int argc, char *argv[]) {
     cmd = readline(PROMPT);
 
     add_history(cmd);
+    extract_args(cmd);
 
     free(cmd);
+    for (int i=0;args_table[i]!=NULL;++i) {
+      free(args_table[i]);
+      args_table[i] = NULL;
+    }
   }
 
   return 0;
 }
+
+
 
 void extract_args(char *line) {
   char *token;
