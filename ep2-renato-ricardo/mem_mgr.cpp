@@ -1,42 +1,50 @@
 #include "utils.hpp"
 
+
+
+
 /*First Fit*/
-int ff(int size) {
-	int i, j, fit;
-	/*Percorre a memória total*/
-	for(i = 0; i + size < t_size; i+= t_memory[i]) {
-		if(!memory[i]) {
-			/*Checa se o tamanho livre é o suficiente*/
-			for(j = 1, fit = true; j < size; j++){
-				if(t_memory[i+j]) {
-					i = i+j;
-					fit = false;
-					break;
-				}
+mem_node* ff(int size) {
+	mem_node *node, *temp;
+	/*Primeiro percorre a memória principal*/
+	for(node = t_mem_h->n; node != t_mem_h; node = node->n) {
+		if (node->s >= size){
+			/*Caso tem espaço livre, dividimos entre dois casos: se sobrou espaço livre ou se o espaço livre foi exato*/
+			if(node->s > size) {
+				temp = new mem_node('L', node->i + size, node->s - size, node->n, node);
+
+				node->t = 'P';
+				node->s = size;
+				node->n = temp;
+
+				return (node);
 			}
-			/*Se couber, marca que esta ocupado*/
-			if(fit){
-				memory[i] = size;
-				return(i);
+			else{
+				node->t = 'P';
+				return (node);
 			}
+
 		}
 	}
-	/*Percorre a memória virtual*/
-	for(i = 0; i + size < v_size; i+= v_memory[i]) {
-		if(!memory[i]) {
-			/*Checa se o tamanho livre é o suficiente*/
-			for(j = 1, fit = true; j < size; j++){
-				if(v_memory[i+j]) {
-					i = i+j;
-					fit = false;
-					break;
-				}
+	/*Depois percorre a memória virtual*/
+	for(node = v_mem_h->n; node != v_mem_h; node = node->n) {
+		if (node->s >= size){
+			/*Caso tem espaço livre, dividimos entre dois casos: se sobrou espaço livre ou se o espaço livre foi exato*/
+			if(node->s > size) {
+				temp = new mem_node('L', node->i + size, node->s - size, node->n, node);
+
+				node->t = 'P';
+				node->s = size;
+				node->n = temp;
+
+				return (node);
 			}
-			/*Se couber, marca que esta ocupado*/
-			if(fit){
-				memory[i] = size;
-				return(i);
+			else{
+				node->t = 'P';
+				return (node);
 			}
+
 		}
+
 	}
 }

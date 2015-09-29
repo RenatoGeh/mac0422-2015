@@ -4,6 +4,8 @@
 int mem_size;
 
 struct mem_node {
+  /*Tipo do bloco: P para processo, L para livre*/
+  char t;
   /* Inicio do bloco. */
   int i;
   /* Tamanho do bloco. */
@@ -13,8 +15,8 @@ struct mem_node {
   /* Bloco anterior. */
   mem_node *p;
   /* Constructors. */
-  mem_node(int _i, int _s) : i(_i), s(_s) {}
-  mem_node(int _i, int _s, mem_node *_n, mem_node *_p) : i(_i), s(_s), n(_n), p(_p) {}
+  mem_node(char _t, int _i, int _s) : t(_t), i(_i), s(_s) {}
+  mem_node(char _t, int _i, int _s, mem_node *_n, mem_node *_p) : t(_t), i(_i), s(_s), n(_n), p(_p) {}
 };
 
 
