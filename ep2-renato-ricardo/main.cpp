@@ -1,4 +1,4 @@
-#include "mem_mgr.hpp"
+#include "main.hpp"
 
 #include <cstdio>
 #include <cstring>
@@ -8,11 +8,26 @@
 #include <readline/history.h>
 #include <unistd.h>
 
-#define PROMPT "[ep2]: "
+#include <queue>
+#include <unordered_set>
+#include <utility>
+
+#include "utils.hpp"
+#include "mem_mgr.hpp" 
 
 int main(int argc, char *argv[]) {
   char *cmd;
-  
+
+  interactive = argc==1;
+
+  out_phys = fopen("/tmp/ep2.mem", "w+");
+  out_virt = fopen("/tmp/ep2.vir", "w+");
+
+  if (!interactive) {
+    parse(argv[1]);
+    goto cleanup;
+  }
+
   using_history();
 
   while (true) {
@@ -20,18 +35,82 @@ int main(int argc, char *argv[]) {
 
     add_history(cmd);
     extract_args(cmd);
+    
+    switch(evaluate_str(args_table[0])) {
+      case evaluate_str("carrega"):
+        parse(args_table[1]);
+        break;
+      case evaluate_str("espaco"):
+        /* set_mem_mgr(atoi(args_table[1])); */
+        break;
+      case evaluate_str("substitui"):
+        /* set_page_mgr(atoi(args_table[1])); */
+        break;
+      case evaluate_str("executa"):
+        /* run_mem_mgr(atoi(args_table[1])); */
+        break;
+      case evaluate_str("sai"):
+        goto cleanup;
+        break;
+      default:
+        fputs("Erro.", stderr);
+        break;
+    } 
 
-    free(cmd);
+    delete cmd;
     for (int i=0;args_table[i]!=NULL;++i) {
-      free(args_table[i]);
+      delete[] args_table[i];
       args_table[i] = NULL;
     }
   }
 
+  cleanup:
+  fclose(out_phys);
+  fclose(out_virt);
+
   return 0;
 }
 
+void parse(char *filename) {
+  FILE *trace;
+#define M_LINE 300
+  char line[M_LINE];
 
+  trace = fopen(filename, "r");
+
+  fscanf(trace, "%d %d", &t_size, &v_size);
+  t_mem_h = new mem_node(MEM_HEADER, 0, t_size);
+  v_mem_h = new mem_node(MEM_HEADER, 0, v_size);
+
+  t_mem_h->n = t_mem_h->p = v_mem_h->n = v_mem_h->p = nullptr;
+  
+  while (1) {
+    process *p = new process();
+    
+    if (fscanf(trace, "%d %s %d %d", &p->t0, p->name, &p->tf, &p->b) == EOF)
+      break;
+
+    fgets(line, M_LINE, trace);
+    
+    char *i;
+    int pi, ti=pi=-1;
+
+    i = strtok(line, " ");
+    while (i != NULL) {
+      if (pi >= 0) {
+        ti = atoi(i);
+        p->pos.insert(std::pair<int, int>(pi, ti));
+        pi = -1;
+      } else
+        pi = atoi(i);
+      
+      i = strtok(NULL, " ");
+    }
+
+    p_queue.push(p);
+  }
+#undef M_LINE
+}
 
 void extract_args(char *line) {
   char *token;
@@ -40,8 +119,8 @@ void extract_args(char *line) {
   token = strtok(line, " ");
   while (token != NULL) {
     int len = strlen(token);
-    free(args_table[i_args]);
-    args_table[i_args] = (char*) malloc((len+1)*sizeof(char));
+    delete[] args_table[i_args];
+    args_table[i_args] = new char[len+1];
     strcpy(args_table[i_args], token); 
     token = strtok(NULL, " ");
     ++i_args;

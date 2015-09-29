@@ -8,16 +8,21 @@ else
 	CFLAGS += -O2
 endif
 
+DEPS = mem_mgr.o utils.o
+
 all: main
 
-main: main.cpp main.hpp mem_mgr.o utils.o
-	g++ -o $^ $(CFLAGS) $(LINKS)
+run: $(DEPS) main.o
+	g++ $^ -o $@ $(LINKS)
 
-mem_mgr: mem_mgr.cpp mem_mgr.hpp utils.o
-	g++ -c $^ $(CFLAGS) $(LINKS)
+main: main.cpp main.hpp mem_mgr.hpp utils.hpp
+	g++ $< $(CFLAGS) $(LINKS)
 
-utils.o: utils.c utils.hpp
-	g++ -c $^ $(CFLAGS) $(LINKS)
+mem_mgr.o: mem_mgr.cpp mem_mgr.hpp utils.hpp
+	g++ $< $(CFLAGS)
+
+utils.o: utils.cpp utils.hpp
+	g++ $< $(CFLAGS)
 
 
 .PHONY: clean
