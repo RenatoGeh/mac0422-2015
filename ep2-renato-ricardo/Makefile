@@ -1,4 +1,4 @@
-CFLAGS = -pedantic -Wall -Wno-unused-result
+CFLAGS = -pedantic -Wall -Wno-unused-result -std=c++11
 DEBUG = false
 LINKS = -lreadline -lcurses -lpthread
 
@@ -8,10 +8,17 @@ else
 	CFLAGS += -O2
 endif
 
-all: mem_mgr
+all: main
 
-mem_mgr: mem_mgr.cpp mem_mgr.hpp
-	g++ -o $@ $^ $(CFLAGS) $(LINKS)
+main: main.cpp main.hpp mem_mgr.o utils.o
+	g++ -o $^ $(CFLAGS) $(LINKS)
+
+mem_mgr: mem_mgr.cpp mem_mgr.hpp utils.o
+	g++ -c $^ $(CFLAGS) $(LINKS)
+
+utils.o: utils.c utils.hpp
+	g++ -c $^ $(CFLAGS) $(LINKS)
+
 
 .PHONY: clean
 clean:
