@@ -10,21 +10,21 @@ endif
 
 DEPS = mem_mgr.o utils.o
 
-all: main
+all: run
 
-run: $(DEPS) main.o
+run: main.o $(DEPS)
 	g++ $^ -o $@ $(LINKS)
 
-main: main.cpp main.hpp mem_mgr.hpp utils.hpp
-	g++ $< $(CFLAGS) $(LINKS)
+main.o: main.cpp main.hpp utils.hpp mem_mgr.hpp
+	g++ -c $(CFLAGS) $^
 
 mem_mgr.o: mem_mgr.cpp mem_mgr.hpp utils.hpp
-	g++ $< $(CFLAGS)
+	g++ -c $(CFLAGS) $^
 
 utils.o: utils.cpp utils.hpp
-	g++ $< $(CFLAGS)
+	g++ -c $(CFLAGS) $^
 
 .PHONY: clean
 clean:
-	rm *.out *.gch *.o mem_mgr 
+	rm *.out *.gch *.o run 
 	

@@ -1,4 +1,40 @@
 #include "utils.hpp"
+#include <cstdio>
+
+#define LIM_LI 3
+
+int t_size;
+int v_size;
+
+mem_node *t_mem_h;
+mem_node *v_mem_h;
+
+FILE *out_phys;
+FILE *out_virt;
+
+size_node *t_size_h;
+size_node *v_size_h;
+
+int t_ls;
+int v_ls;
+int li = LIM_LI
+
+namespace {
+  void __write_bytes(FILE* stream, int i, int f, char val) {
+    fseek(stream, i, SEEK_SET);
+
+    while (i++ <= f)
+      fwrite(&val, sizeof(val), sizeof(val), stream);
+  }
+}
+
+void write_phys(int i, int f, char val) { 
+  __write_bytes(out_phys, i, f, val);
+}
+
+void write_virt(int i, int f, char val) { 
+  __write_bytes(out_virt, i, f, val);
+}
 
 void get_limits(void){
 	t_ls = floor(log2(t_size));
@@ -97,7 +133,3 @@ void v_separate(int pos, int size){
 
 	return
 }
-
-
-
-/* Utils. */

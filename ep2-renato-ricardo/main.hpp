@@ -15,7 +15,7 @@
 #include <cstring>
 
 /* Se ha um trace file ou e' interativo. */
-bool interactive;
+extern bool interactive;
 
 /* Processo. */
 struct process {
@@ -32,10 +32,10 @@ struct process {
 };
 
 /* Fila de processos. */
-std::queue<process*> p_queue;
+extern std::queue<process*> p_queue;
 
 /* Tabela de argumentos. */
-char *args_table[M_ARGS];
+extern char *args_table[M_ARGS];
 
 /* Transforma string em um unsigned integer. */
 constexpr unsigned int evaluate_str(const char* str, int h = 0) {

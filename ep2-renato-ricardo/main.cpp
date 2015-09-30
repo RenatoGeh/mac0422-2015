@@ -12,16 +12,23 @@
 #include <unordered_set>
 #include <utility>
 
-#include "utils.hpp"
 #include "mem_mgr.hpp" 
+#include "utils.hpp"
+
+bool interactive;
+
+std::queue<process*> p_queue;
+
+char *args_table[M_ARGS];
 
 int main(int argc, char *argv[]) {
   char *cmd;
 
   interactive = argc==1;
 
-  out_phys = fopen("/tmp/ep2.mem", "w+");
-  out_virt = fopen("/tmp/ep2.vir", "w+");
+  cmd = nullptr;
+  out_phys = fopen("/tmp/ep2.mem", "wb+");
+  out_virt = fopen("/tmp/ep2.vir", "wb+");    
 
   if (!interactive) {
     parse(argv[1]);
@@ -53,7 +60,7 @@ int main(int argc, char *argv[]) {
         goto cleanup;
         break;
       default:
-        fputs("Erro.", stderr);
+        fputs("Erro.\n", stderr);
         break;
     } 
 
@@ -109,6 +116,9 @@ void parse(char *filename) {
 
     p_queue.push(p);
   }
+
+  write_phys(0, t_size-1, -1);
+  write_virt(0, v_size-1, -1);
 #undef M_LINE
 }
 

@@ -1,7 +1,8 @@
 #include "mem_mgr.hpp"
+
+#include <cmath>
+
 #include "utils.hpp"
-#include "mem_mgr.hpp"
-#include <cmath.h>
 
 /*Limite inferior para o Quick Fit*/
 #define LI 3
@@ -52,7 +53,7 @@ mem_node* ff_aloc(int size) {
 
 /*Next Fit*/
 
-mem_node* nf_aloc(int size){
+mem_node* nf_aloc(int size) {
     static mem_node *t_last = t_mem_h;
     static mem_node *v_last = v_mem_h;
     mem_node *node, *temp;
@@ -101,7 +102,7 @@ mem_node* nf_aloc(int size){
     return(nullptr);
 }
 
-mem_node* qf_aloc(int size){
+mem_node* qf_aloc(int size) {
     mem_node *node;
 
     node = t_search(size);
@@ -115,7 +116,7 @@ mem_node* qf_aloc(int size){
     return(nullptr);
 }
 
-mem_node* t_search(int size){
+mem_node* t_search(int size) {
     size_node *node;
     mem_node *temp;
     for (node = t_size_h->n; node != t_size_h; node = node->n){
@@ -133,7 +134,7 @@ mem_node* t_search(int size){
     return(nullptr);
 }
 
-mem_node* v_search(int size){
+mem_node* v_search(int size) {
     size_node *node;
     mem_node *temp;
     for (node = v_size_h->n; node != v_size_h; node = node->n){
