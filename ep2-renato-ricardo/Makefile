@@ -1,4 +1,4 @@
-CFLAGS = -pedantic -Wall -Wno-unused-result -std=c++11
+CFLAGS = -pedantic -Wall -Wno-unused-result -std=c++0x
 DEBUG = false
 LINKS = -lreadline -lcurses -lpthread
 
@@ -23,7 +23,6 @@ mem_mgr.o: mem_mgr.cpp mem_mgr.hpp utils.hpp
 
 utils.o: utils.cpp utils.hpp
 	g++ $< $(CFLAGS)
-
 
 .PHONY: clean
 clean:

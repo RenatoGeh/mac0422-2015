@@ -6,9 +6,44 @@
 #include <functional>
 
 #define MEM_HEADER '\0'
+#define LI 3
+
+/*Todos limites são log2 de seu valor real: se
+o limite superior virtual for 1024, v_ls será 10
+por exemplo*/
+
+/*Limite superior para a memória total*/
+int t_ls;
+/*Limite superior para a memória virtual*/
+int v_ls;
+/*Limite inferior usado em ambas memórias*/
+int li = LI;
+
+/*Atualiza os valores dos limites superiores para a memória total e virtual*/
+/*Importante: precisa que já tenha recebido os valores t_size e v_size*/
+void get_limits(void);
+/*Cria a "lista de listas" para o quick fit, se baseando nos limites superiores e inferiores*/
+void create_qf(void);
+/*Próximas duas funções distribuem um pedaço da memória total ou virtual (que começa da posição pos
+e tem tamanho size) da seguinte forma:
+  -Divide em 4 esse espaço, e aproxima até o maior multiplo de 2 menor que esse valor.
+    ~Se o resultado for maior que o limite inferior, separa 3/4 de size como espaço livre nas listas e chama a função
+    recursivamente para o restante.
+    ~Caso o resultado seja igual ou menor que o limite inferior, separa o maior numero de intervalos com tamanho limite
+    inferior como espaço livre na lista do quick fix*/
+void t_dis_mem(int pos, int size);
+void v_dis_mem(int pos, int size);
+
+/*Próximas duas funções separam os blcoos de memória total ou virtual de amanho size
+(sempre multiplo de 2) como livre nas listas do quick fit*/
+void t_separate(int pos, int size);
+void v_separate(int pos, int size);
+
+
 
 int mem_size;
 
+/*Célula que guarda blocos de memória (ocupados, livres, ou headers da lista*/
 struct mem_node {
   /*Tipo do bloco: P para processo, L para livre, MEM_HEADER para header*/
   char t;
@@ -26,7 +61,23 @@ struct mem_node {
   ~mem_node() {}
 };
 
+struct size_node {
+  /* Tamanho dos blocos disponiveis. */
+  int s;
+  /*Lista de blocos com tamanho s livre*/
+  mem_node *f;
+  /* Proximo bloco de tamanho dobrado. */
+  size_node *n;
+  /* Bloco anterior de tamanho pela metade. */
+  size_node *p;
+  /* Constructors. */
+  size_node(int _s) : s(_s) {}
+  size_node(int _s, mem_node *_f, size_node *_n, size_node *_p) : s(_s), f(_f), n(_n), p(_p) {}
+  ~size_node() {}
+};
+/*Tamanho da memória total*/
 int t_size;
+/*Tamanho da memória virtual*/
 int v_size;
 
 int *t_memory;
@@ -34,6 +85,10 @@ int *v_memory;
 
 mem_node *t_mem_h;
 mem_node *v_mem_h;
+/*Listas crescentes de listas de tamanhos de espaços livres (multiplos de 2)
+, dobrando a cada node e voltando até a cabeça*/
+size_node *t_size_h;
+size_node *v_size_h;
 
 FILE *out_phys;
 FILE *out_virt;
