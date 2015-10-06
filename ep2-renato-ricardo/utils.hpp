@@ -21,27 +21,27 @@ struct mem_node {
   /* Constructors. */
   mem_node(char _t, int _i, int _s) : t(_t), i(_i), s(_s) {}
   mem_node(char _t, int _i, int _s, mem_node *_n, mem_node *_p) : t(_t), i(_i), s(_s), n(_n), p(_p) {}
-  
+
   ~mem_node() {}
 };
 
 struct size_node {
   /* Tamanho dos blocos disponiveis. */
   int s;
-  
+
   /*Lista de blocos com tamanho s livre*/
   mem_node *f;
-  
+
   /* Proximo bloco de tamanho dobrado. */
   size_node *n;
-  
+
   /* Bloco anterior de tamanho pela metade. */
   size_node *p;
 
   /* Constructors. */
   size_node(int _s) : s(_s) {}
   size_node(int _s, mem_node *_f, size_node *_n, size_node *_p) : s(_s), f(_f), n(_n), p(_p) {}
-  
+
   ~size_node() {}
 };
 
@@ -69,10 +69,10 @@ inline void hash_combine(std::size_t &seed, const T &v) {
 struct pair_hash {
   inline std::size_t operator()(const std::pair<int, int> & v) const {
     std::size_t seed = 0;
-    
+
     hash_combine(seed, v.first);
     hash_combine(seed, v.second);
-    
+
     return seed;
   }
 };
@@ -81,14 +81,14 @@ struct pair_hash {
 void write_phys(int i, int f, char val);
 void write_virt(int i, int f, char val);
 
-/* Listas crescentes de listas de tamanhos de espaços livres (multiplos de 2), 
+/* Listas crescentes de listas de tamanhos de espaços livres (multiplos de 2),
  * dobrando a cada node e voltando até a cabeca.
  */
 extern size_node *t_size_h;
 extern size_node *v_size_h;
 
-/* Todos limites são log2 de seu valor real: se o limite superior virtual 
- * for 1024, v_ls será 10 por exemplo 
+/* Todos limites são log2 de seu valor real: se o limite superior virtual
+ * for 1024, v_ls será 10 por exemplo
  */
 
 /* Limite superior para a memória total */

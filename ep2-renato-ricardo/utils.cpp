@@ -28,11 +28,11 @@ namespace {
   }
 }
 
-void write_phys(int i, int f, char val) { 
+void write_phys(int i, int f, char val) {
   __write_bytes(out_phys, i, f, val);
 }
 
-void write_virt(int i, int f, char val) { 
+void write_virt(int i, int f, char val) {
   __write_bytes(out_virt, i, f, val);
 }
 

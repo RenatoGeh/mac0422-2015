@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include <utility>
 
-#include "mem_mgr.hpp" 
+#include "mem_mgr.hpp"
 #include "utils.hpp"
 
 bool interactive;
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
   cmd = nullptr;
   out_phys = fopen("/tmp/ep2.mem", "wb+");
-  out_virt = fopen("/tmp/ep2.vir", "wb+");    
+  out_virt = fopen("/tmp/ep2.vir", "wb+");
 
   if (!interactive) {
     parse(argv[1]);
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
     add_history(cmd);
     extract_args(cmd);
-    
+
     switch(evaluate_str(args_table[0])) {
       case evaluate_str("carrega"):
         parse(args_table[1]);
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
       default:
         fputs("Erro.\n", stderr);
         break;
-    } 
+    }
 
     delete cmd;
     for (int i=0;args_table[i]!=NULL;++i) {
@@ -89,16 +89,20 @@ void parse(char *filename) {
   t_mem_h = new mem_node(MEM_HEADER, 0, t_size);
   v_mem_h = new mem_node(MEM_HEADER, 0, v_size);
 
-  t_mem_h->n = t_mem_h->p = v_mem_h->n = v_mem_h->p = nullptr;
-  
+  t_mem_h->n = new mem_node('L', 0, t_size, t_mem_h, t_mem_h);
+  v_mem_h->n = new mem_node('L', 0, v_size, v_mem_h, v_mem_h);
+
+  t_mem_h->p = t_mem_h->n;
+  v_mem_h->p = v_mem_h->n;
+
   while (1) {
     process *p = new process();
-    
+
     if (fscanf(trace, "%d %s %d %d", &p->t0, p->name, &p->tf, &p->b) == EOF)
       break;
 
     fgets(line, M_LINE, trace);
-    
+
     char *i;
     int pi, ti=pi=-1;
 
@@ -110,7 +114,7 @@ void parse(char *filename) {
         pi = -1;
       } else
         pi = atoi(i);
-      
+
       i = strtok(NULL, " ");
     }
 
@@ -124,14 +128,14 @@ void parse(char *filename) {
 
 void extract_args(char *line) {
   char *token;
-  int i_args = 0;  
+  int i_args = 0;
 
   token = strtok(line, " ");
   while (token != NULL) {
     int len = strlen(token);
     delete[] args_table[i_args];
     args_table[i_args] = new char[len+1];
-    strcpy(args_table[i_args], token); 
+    strcpy(args_table[i_args], token);
     token = strtok(NULL, " ");
     ++i_args;
   }

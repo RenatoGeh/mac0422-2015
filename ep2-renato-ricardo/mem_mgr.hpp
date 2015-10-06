@@ -3,6 +3,14 @@
 
 #include "utils.hpp"
 
+/* Define o algoritmo de gerenciamento de espaço livre. */
+inline void set_mem_mgr(int opt);
+
+/* Roda o algoritmo de gerenciamento.
+ * Se set_mem_mgr não foi chamado antes usa 1 como default opt.
+ */
+void run_mem_mgr(int dt);
+
 /*Algoritmo First Fit: Pega a primeira posição
 livre da memória que caiba o processo de tamanho size*/
 mem_node* ff_aloc(int size);
