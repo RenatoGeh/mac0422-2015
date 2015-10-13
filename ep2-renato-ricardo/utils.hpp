@@ -117,7 +117,7 @@ void create_qf(void);
 void t_dis_mem(int pos, int size);
 void v_dis_mem(int pos, int size);
 
-/* Próximas duas funções separam os blcoos de memória total ou virtual de amanho size
+/* Próximas duas funções separam os blocos de memória total ou virtual de amanho size
  * (sempre multiplo de 2) como livre nas listas do quick fit
  */
 void t_separate(int pos, int size);

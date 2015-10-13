@@ -25,11 +25,14 @@ tamanhos predefinidos (multiplos de 2) e encontra o melhor espaço que
 caiba o processo*/
 mem_node* qf_aloc(int size);
 
-/*Procura na memória total o bloco de tamanho mais adequado que caiba o processo de tamanho size*/
-mem_node* t_search(int size);
-
 /*Procura na memória virtual o bloco de tamanho mais adequado que caiba o processo de tamanho size*/
 mem_node* v_search(int size);
+
+/*Função de liberar um processo para o algoritmo FirstFit ou NextFit*/
+void ff_nf_free(mem_node *node);
+
+/*Função de liberar um processo para o algoritmo QuickFit*/
+void qf_free(mem_node *node);
 
 
 #endif /*_MEM_MGR_HPP*/
