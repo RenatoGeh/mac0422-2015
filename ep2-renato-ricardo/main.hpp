@@ -19,6 +19,7 @@ extern bool interactive;
 
 /* Processo. */
 struct process {
+  int id;
   /* Tempo inicial do processo. */
   int t0;
   /* Tempo final do processo. */
@@ -28,7 +29,11 @@ struct process {
   /* Tamanho em bytes. */
   int b;
   /* Posicoes a serem acessadas. */
-  std::unordered_set<std::pair<int, int>, pair_hash> pos;
+  std::queue<std::pair<int, int>> pos;
+  /* Memoria virtual alocada. */
+  mem_node* v_alloc_mem;
+  /* Memoria fisica alocada. */
+  mem_node* t_alloc_mem;
 };
 
 /* Fila de processos. */

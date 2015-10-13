@@ -89,11 +89,11 @@ void parse(char *filename) {
   t_mem_h = new mem_node(MEM_HEADER, 0, t_size);
   v_mem_h = new mem_node(MEM_HEADER, 0, v_size);
 
-  t_mem_h->n = new mem_node('L', 0, t_size, t_mem_h, t_mem_h);
   v_mem_h->n = new mem_node('L', 0, v_size, v_mem_h, v_mem_h);
-
-  t_mem_h->p = t_mem_h->n;
   v_mem_h->p = v_mem_h->n;
+
+  t_mem_h->n = new mem_node('L', 0, t_size, t_mem_h, t_mem_h);
+  t_mem_h->p = t_mem_h->n;
 
   while (1) {
     process *p = new process();
@@ -110,7 +110,7 @@ void parse(char *filename) {
     while (i != NULL) {
       if (pi >= 0) {
         ti = atoi(i);
-        p->pos.insert(std::pair<int, int>(pi, ti));
+        p->pos.push(std::pair<int, int>(pi, ti));
         pi = -1;
       } else
         pi = atoi(i);
@@ -118,11 +118,14 @@ void parse(char *filename) {
       i = strtok(NULL, " ");
     }
 
+    p->id = p_queue.size();
+    p->v_alloc_mem = p->t_alloc_mem = nullptr;
     p_queue.push(p);
   }
 
-  write_phys(0, t_size-1, -1);
-  write_virt(0, v_size-1, -1);
+  /* Considera-se que 255 equivale a -1. */
+  write_phys(0, t_size-1, 255);
+  write_virt(0, v_size-1, 255);
 #undef M_LINE
 }
 

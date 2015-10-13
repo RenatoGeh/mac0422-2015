@@ -21,7 +21,7 @@ int v_ls;
 int li = LIM_LI;
 
 namespace {
-  void __write_bytes(FILE* stream, int i, int f, char val) {
+  void __write_bytes(FILE* stream, int i, int f, unsigned char val) {
     fseek(stream, i, SEEK_SET);
 
     while (i++ <= f)
@@ -29,11 +29,11 @@ namespace {
   }
 }
 
-void write_phys(int i, int f, char val) {
+void write_phys(int i, int f, unsigned char val) {
   __write_bytes(out_phys, i, f, val);
 }
 
-void write_virt(int i, int f, char val) {
+void write_virt(int i, int f, unsigned char val) {
   __write_bytes(out_virt, i, f, val);
 }
 

@@ -6,6 +6,7 @@
 #include <functional>
 
 #define MEM_HEADER '\0'
+#define PAGE_SIZE 16
 
 struct mem_node {
   /*Tipo do bloco: P para processo, L para livre, MEM_HEADER para header*/
@@ -14,13 +15,16 @@ struct mem_node {
   int i;
   /* Tamanho do bloco. */
   int s;
+  /* Processo sendo usado. */
+  int pid;
   /* Proximo bloco. */
   mem_node *n;
   /* Bloco anterior. */
   mem_node *p;
   /* Constructors. */
-  mem_node(char _t, int _i, int _s) : t(_t), i(_i), s(_s) {}
-  mem_node(char _t, int _i, int _s, mem_node *_n, mem_node *_p) : t(_t), i(_i), s(_s), n(_n), p(_p) {}
+  mem_node(char _t, int _i, int _s) : t(_t), i(_i), s(_s), pid(0), n(nullptr), p(nullptr) {}
+  mem_node(char _t, int _i, int _s, mem_node *_n, mem_node *_p) :
+    t(_t), i(_i), s(_s), pid(0), n(_n), p(_p) {}
 
   ~mem_node() {}
 };
@@ -78,8 +82,8 @@ struct pair_hash {
 };
 
 /* Escreve o valor val em byte no range [0, f]. */
-void write_phys(int i, int f, char val);
-void write_virt(int i, int f, char val);
+void write_phys(int i, int f, unsigned char val);
+void write_virt(int i, int f, unsigned char val);
 
 /* Listas crescentes de listas de tamanhos de espaços livres (multiplos de 2),
  * dobrando a cada node e voltando até a cabeca.
