@@ -22,9 +22,9 @@ struct mem_node {
   /* Bloco anterior. */
   mem_node *p;
   /* Constructors. */
-  mem_node(char _t, int _i, int _s) : t(_t), i(_i), s(_s), pid(0), n(nullptr), p(nullptr) {}
+  mem_node(char _t, int _i, int _s) : t(_t), i(_i), s(_s), pid(-1), n(nullptr), p(nullptr) {}
   mem_node(char _t, int _i, int _s, mem_node *_n, mem_node *_p) :
-    t(_t), i(_i), s(_s), pid(0), n(_n), p(_p) {}
+    t(_t), i(_i), s(_s), pid(-1), n(_n), p(_p) {}
 
   ~mem_node() {}
 };

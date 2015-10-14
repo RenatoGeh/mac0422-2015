@@ -38,10 +38,46 @@ mem_node *nru_repl(int req_size) {
   }
 
   if (size >= req_size) {
+    mem_node *it = t_mem_h->n;
+    i = 0;
+    while (i/PAGE_SIZE < f) {
+      i += it->t;
+      it = it->n;
+    }
 
+    mem_node *start = it;
+    mem_node *next = it->n;
+
+    while (size > 0) {
+      size -= it->s;
+      next = it->n;
+      delete it;
+      it = next;
+      start->s += it->s;
+    }
+
+    start->n = it;
+    it->p = start;
+
+    return start;
   }
 
-  return nullptr;
+  mem_node *it = t_mem_h->n;
+  mem_node *start = it;
+  mem_node *next = it->n;
+
+  while (size > 0) {
+    size -= it->s;
+    next = it->n;
+    delete it;
+    it = next;
+    start->s += it->s;
+  }
+
+  start->n = it;
+  it->p = start;
+
+  return start;
 }
 
 mem_node* nf_phys_alloc(int size) {
