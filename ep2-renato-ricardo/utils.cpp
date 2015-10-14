@@ -50,7 +50,7 @@ void create_qf(void){
 
 	/*Cria a lista de rápido acesso para a memória total*/
 	t_size_h = new size_node(0);
-	t_size_h->f = nullptr; 
+	t_size_h->f = nullptr;
 	t_size_h->n = t_size_h->p = nullptr;
 	for (i = li, node = t_size_h->n; i <= t_ls; i++){
 		temp = new size_node(exp2(i), nullptr, nullptr, node);
@@ -62,7 +62,7 @@ void create_qf(void){
 
 	/*Cria a lista de rápido acesso para a memória virtual*/
 	v_size_h = new size_node(0);
-	v_size_h->f = nullptr; 
+	v_size_h->f = nullptr;
 	v_size_h->n = v_size_h->p = nullptr;
 	for (i = li, node = v_size_h->n; i <= v_ls; i++){
 		temp = new size_node(exp2(i), nullptr, nullptr, node);
@@ -74,8 +74,6 @@ void create_qf(void){
 
 	t_dis_mem(0, t_size);
 	v_dis_mem(0, v_size);
-
-	return;
 }
 
 void t_dis_mem(int pos, int size){

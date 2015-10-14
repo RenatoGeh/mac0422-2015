@@ -27,7 +27,11 @@ int page_alg = PAGE_ALG::NRU;
 
 int mem_status_dt = -1;
 
-void set_mem_mgr(int opt) { opt = mem_alg; }
+void set_mem_mgr(int opt) {
+  opt = mem_alg;
+  if (mem_alg == MEM_ALG::QF)
+    create_qf();
+}
 
 void run_mem_mgr(int dt) {
   mem_status_dt = dt;
@@ -53,6 +57,7 @@ void run_mem_mgr(int dt) {
 
     mem_node *alloc = mgr(top->b);
     top->v_alloc_mem = alloc;
+    write_virt(top->v_alloc_mem->i, top->v_alloc_mem->i+top->v_alloc_mem->s, top->id);
 
     while (rt > 0) {
       if (top->t0 <= t_secs) {
@@ -67,6 +72,9 @@ void run_mem_mgr(int dt) {
           if (top->t_alloc_mem == nullptr) {
             top->t_alloc_mem = page_mgr(_page_size);
           }
+
+          int st = top->t_alloc_mem->i;
+          write_phys(st, st + top->t_alloc_mem->s, top->id);
         }
 
         if (page_alg == PAGE_ALG::NRU)
