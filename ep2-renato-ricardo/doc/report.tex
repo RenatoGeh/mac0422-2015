@@ -22,7 +22,7 @@
 %----------------------------------------------------------------------------------------
 
 \title[EP2 - MAC0422]{EP2 - MAC0422 - 2015 \\
-                      main, mem_mgr e page_mgr} % The short title appears at the bottom of every slide, the full title is only on the title page
+                      main, mem\_mgr e page\_mgr} % The short title appears at the bottom of every slide, the full title is only on the title page
 \author{Renato Lui Geh e Ricardo Fonseca}
 \date{}
 \begin{document}
@@ -46,12 +46,12 @@
 \end{frame}
 
 %------------------------------------------------
-\section{mem_mgr}
+\section{mem\_mgr}
 %------------------------------------------------
 
 \begin{frame}
   \frametitle{Gerenciador de Memória}
-  Para facilitar o trabalho da implementação do nosso Gerenciador de Memória, criamos dois arquivos: \texttt{utils.c} e \texttt{utils.h}. Nesses arquivos foram criados as structs para representar \texttt{mem_node}, \texttt{size_node}, funções para auxiliar algoritmos e escrever bytes no arquivo de saída. \\~\\
+  Para facilitar o trabalho da implementação do nosso Gerenciador de Memória, criamos dois arquivos: \texttt{utils.c} e \texttt{utils.h}. Nesses arquivos foram criados as structs para representar \texttt{mem\_node}, \texttt{size\_node}, funções para auxiliar algoritmos e escrever bytes no arquivo de saída. \\~\\
 
   Listas duplamente ligadas com cabeça foram criadas para armazenar e manipular os blocos de memória mais facilmente. Para o algortimo Quick Fit usamos uma \texttt{lista de listas} para separar os diferentes tamanhos de espaços livres na memória.
 \end{frame}
@@ -59,12 +59,12 @@
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{mem_node e size_node}
+  \frametitle{mem\_node e size\_node}
   Para manipular a memória virtual, utilizamos duas structs diferentes, uma representando um bloco na memória virtual e outro que é apenas usado para o algoritmo Quick Fit \\~\\
 
-  \texttt{mem_node}: Possui 6 campos. \texttt{t} para o tipo do bloco (\texttt{P} para processo, \texttt{L} para um bloco  livre e \texttt{\backslash 0} para a cabeça da lista), \texttt{i} para a posição início da memória do bloco, \texttt{s} para tamanho do bloco, e \texttt{*n} , \texttt{*p} para ponteiros para os pŕoximos nós da lista. \\~\\
+  \texttt{mem\_node}: Possui 6 campos: (\texttt{char t}) para o tipo do bloco, (\texttt{int i}) para a posição início da memória do bloco, (\texttt{int s}) para tamanho do bloco, (\texttt{mem\_node *n}) e (\texttt{mem\_node *p}) como ponteiros para os pŕoximos nós da lista. \\~\\
 
-  \texttt{size_node}: Lista de listas de tamanhos de blocos para o algoritmo Quick Fit. Possui 4 campos. \texttt{s} para tamanho dos blocos da lista que o nó aponta, \texttt{*f} para ponteiro para uma lista ligada sem cabeça com os blocos livres de tamanho \texttt{s} , e \texttt{*n} , \texttt{*p} para ponteiros para os pŕoximos nós da lista.
+  \texttt{size\_node}: Lista de listas de tamanhos de blocos para o algoritmo Quick Fit. Possui 4 campos. (\texttt{int s}) para tamanho dos blocos da lista que o nó aponta, (\texttt{mem\_node *f}) como ponteiro para uma lista ligada sem cabeça com os blocos livres de tamanho \texttt{s}, (\texttt{size\_node *n}) e (\texttt{size\_node *p}) como ponteiros para os pŕoximos nós da lista.
 \end{frame}
 
 %------------------------------------------------
@@ -80,19 +80,19 @@
 
 \begin{frame}
   \frametitle{Listas Ligadas}
-  Em todos os gerenciadores implementados foram usadas a lista com a cabeça \texttt{v_mem_h}. Para a memória física total utiliza-se \texttt{t_mem_h} \\~\\
+  Em todos os gerenciadores implementados foram usadas a lista com a cabeça \texttt{v\_mem\_h}. Para a memória física total utiliza-se \texttt{t\_mem\_h} \\~\\
   
-  \texttt{v_mem_h}: guarda todos os blocos de memória livres ou ocupados na memória virtual. O algoritmo Quick Fit utiliza de forma um pouco diferente essa lista. \\~\\
+  \texttt{v\_mem\_h}: guarda todos os blocos de memória livres ou ocupados na memória virtual. O algoritmo Quick Fit utiliza de forma um pouco diferente essa lista. \\~\\
 
-  \texttt{t_mem_h}: guarda todos os blocos de memória ocupando a memória física total.
+  \texttt{t\_mem\_h}: guarda todos os blocos de memória ocupando a memória física total.
 \end{frame}
 
 %------------------------------------------------
 
 \begin{frame}
   \frametitle{First Fit (FF)}
-  Este gerenciador usa diretamente a lista da memória virtual. Quando o \texttt{t_secs} chega no instante \texttt{t0} de um processo, se há algum espaço livre que caiba o processo, o processo é atribuído àquela parte da memória virtual.
-  O bloco de memória é mudado para \textt{P}\\
+  Este gerenciador usa diretamente a lista da memória virtual. Quando o \texttt{t\_secs} chega no instante \texttt{t0} de um processo, se há algum espaço livre que ele caiba, o processo é atribuído àquela parte da memória virtual.
+  O bloco de memória é mudado para \textt{P}. \\~\\
 
   O processo permanece na memória até terminar.
 \end{frame}
@@ -101,33 +101,101 @@
 
 \begin{frame}
   \frametitle{Next Fit (NF)}
-  Este gerenciador também usa diretamente a lista da memória virtual. Quando o \texttt{t_secs} chega no instante \texttt{t0} de um processo, se há algum espaço livre que caiba o processo, o processo é atribuído àquela parte da memória virtual. Porém usamos um apontador de nó especial \texttt{v_last}  \\~\\
+  Este gerenciador também usa diretamente a lista da memória virtual. Quando o \texttt{t\_secs} chega no instante \texttt{t0} de um processo, se há algum espaço livre que caiba o processo, o processo é atribuído àquela parte da memória virtual. Porém usamos um apontador de nó especial \texttt{v\_last} que marca a última posição vista na lista, dessa forma para futuros usos da função, ela começa do último bloco criado. \\~\\
 
-  O processo permanece na memória até terminar.
 \end{frame}
 
-%----------------------------------------------------------------------------------------
-
+%------------------------------------------------
 \begin{frame}
   \frametitle{Quick Fit (QF)}
-  
+  Ao escolher o algoritmo Quick Fit, o dicionário é criado dinamicamente por nosso algoritmo, que faz o seguinte:
+  \begin{itemize}
+    \item Pega o valor disponível (inicialmente toda a memória virtual disponível).
+    \item Divide em 4 esse espaço, e aproxima até o maior multiplo de 2 menor que esse valor.
+    \item Se o resultado for maior que o limite inferior (definido por nós como 16, de acordo com o tamanho das páginas), separa 3/4 do tamanho total recebido pela função como espaço livre nas listas (para cada 1/3 é criado um bloco de espaço livre desse tamanho pŕoximo de 1/4 do tamanho total). Em seguida chama a função recursivamente para o restante do espaço.
+    \item Caso o resultado seja igual ou menor que o limite inferior, separa o maior numero de intervalos com tamanho limite inferior como espaço livre na lista do quick fit.
+  \end{itemize} \\~\\
+
+
 \end{frame}
 
 %------------------------------------------------
-\section{Paginação}
+
+\begin{frame}
+  \frametitle{QF - Continuação}
+  Quando o \texttt{t\_secs} chega no instante \texttt{t0} de um processo, ele procura o menor bloco livre que seja maior ou igual que o tamanho necessário do processo (percorre a lista de size\_node), e depois marca como ocupado esse bloco, e põe no começo da lista \texttt{v\_mem\_h} esse processo (essa lista ligada não possue ordenação para processos, apenas tem todos os blocos que estão sendo ocupados por processos.\\~\\
+
+\end{frame}
+
 %------------------------------------------------
 
 \begin{frame}
+  \frametitle{ff\_nf\_free}
+  Tanto para o gerenciador de memória FF quanto NF utilizamos a mesma função para quando um processo termina. De forma simples ela transforma o bloco como livre, e com a ajuda das listas duplamente ligadas,
+  verifica se o bloco estava entre algum outro bloco livre, eficientemente unindo-os em um só bloco pronto para ocupar outro processo.\\~\\
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{qf\_free}
+  Para o gerenciador de memória QF utilizamos a função \texttt{qf\_free} para quando um processo termina. Ela transforma o bloco do processo como livre, e utilizando nossa \texttt{lista de listas}, disponibiliza como livre o bloco na sua respectiva lista (a que possue outros blocos com seu mesmo tamanho).\\~\\
+
+\end{frame}
+
+%------------------------------------------------
+\section{page\_mgr}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Paginação}
 Escrever coisas
 \end{frame}
 
 %------------------------------------------------
-\section{Testes}
+
+\begin{frame}
+\frametitle{Not Recently Used Page (NRU)}
+Coisas da vida
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{First-In, First-Out (FIFO)}
+Coisas do universo
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Second-Chance Page (SC)}
+Coisas ddo amor
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Least Recently Used Page (LRU)}
+Where is the Love
+\end{frame}
+
+%------------------------------------------------
+\section{Testes e Observações Finais}
 %------------------------------------------------
 
 \begin{frame}
   \frametitle{Testes}
   Veremos alguns testes feitos com os gerenciadores de memória e algoritmos de substituição de página.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Observações}
+  Nosso algoritmo Quick Fit divide a memória virtual até tamanhos maiores ou iguais que o limite inferior, o que gera um problema de desperdício de memória, pois se a memória não for múltiplo dele (16 no caso),
+  é possível que até 15 bytes sejam desperdiçados e nunca utilizados, mas comparado com a memória virtual disponível não é de grande impacto esse valor.
 \end{frame}
 
 \end{document}

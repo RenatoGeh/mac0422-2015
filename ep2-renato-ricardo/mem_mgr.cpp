@@ -90,7 +90,7 @@ void run_mem_mgr(int dt) {
 }
 
 /*Limite inferior para o Quick Fit*/
-#define LI 3
+#define LI 4
 
 /*First Fit*/
 mem_node* ff_aloc(int size) {
