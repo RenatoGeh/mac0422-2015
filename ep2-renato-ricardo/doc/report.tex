@@ -1,0 +1,133 @@
+\documentclass{beamer}
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+
+\mode<presentation> {
+
+ \usetheme{Frankfurt}
+ \setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+ 
+ \setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+ %\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+
+%----------------------------------------------------------------------------------------
+% TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[EP2 - MAC0422]{EP2 - MAC0422 - 2015 \\
+                      main, mem_mgr e page_mgr} % The short title appears at the bottom of every slide, the full title is only on the title page
+\author{Renato Lui Geh e Ricardo Fonseca}
+\date{}
+\begin{document}
+
+\begin{frame}
+  \titlepage % Print the title page as the first slide
+\end{frame}
+
+
+%----------------------------------------------------------------------------------------
+% PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{main} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{main}
+  Escrever coisas
+\end{frame}
+
+%------------------------------------------------
+\section{mem_mgr}
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Gerenciador de Memória}
+  Para facilitar o trabalho da implementação do nosso Gerenciador de Memória, criamos dois arquivos: \texttt{utils.c} e \texttt{utils.h}. Nesses arquivos foram criados as structs para representar \texttt{mem_node}, \texttt{size_node}, funções para auxiliar algoritmos e escrever bytes no arquivo de saída. \\~\\
+
+  Listas duplamente ligadas com cabeça foram criadas para armazenar e manipular os blocos de memória mais facilmente. Para o algortimo Quick Fit usamos uma \texttt{lista de listas} para separar os diferentes tamanhos de espaços livres na memória.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{mem_node e size_node}
+  Para manipular a memória virtual, utilizamos duas structs diferentes, uma representando um bloco na memória virtual e outro que é apenas usado para o algoritmo Quick Fit \\~\\
+
+  \texttt{mem_node}: Possui 6 campos. \texttt{t} para o tipo do bloco (\texttt{P} para processo, \texttt{L} para um bloco  livre e \texttt{\backslash 0} para a cabeça da lista), \texttt{i} para a posição início da memória do bloco, \texttt{s} para tamanho do bloco, e \texttt{*n} , \texttt{*p} para ponteiros para os pŕoximos nós da lista. \\~\\
+
+  \texttt{size_node}: Lista de listas de tamanhos de blocos para o algoritmo Quick Fit. Possui 4 campos. \texttt{s} para tamanho dos blocos da lista que o nó aponta, \texttt{*f} para ponteiro para uma lista ligada sem cabeça com os blocos livres de tamanho \texttt{s} , e \texttt{*n} , \texttt{*p} para ponteiros para os pŕoximos nós da lista.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Algoritmos}
+  Para ser mais fácil de se escolher qual gerenciador usar, criamos a variável \texttt{manager}, que é um ponteiro para função. Os argumentos de linha de comando são lidos e a função é atribuída a \texttt{manager} em seguida. \\~\\
+
+  O gerenciador pelo método Quick Fit utiliza uma lista de listas, que é criado apenas no caso dele ser escolhido ao rodar o programa.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Listas Ligadas}
+  Em todos os gerenciadores implementados foram usadas a lista com a cabeça \texttt{v_mem_h}. Para a memória física total utiliza-se \texttt{t_mem_h} \\~\\
+  
+  \texttt{v_mem_h}: guarda todos os blocos de memória livres ou ocupados na memória virtual. O algoritmo Quick Fit utiliza de forma um pouco diferente essa lista. \\~\\
+
+  \texttt{t_mem_h}: guarda todos os blocos de memória ocupando a memória física total.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{First Fit (FF)}
+  Este gerenciador usa diretamente a lista da memória virtual. Quando o \texttt{t_secs} chega no instante \texttt{t0} de um processo, se há algum espaço livre que caiba o processo, o processo é atribuído àquela parte da memória virtual.
+  O bloco de memória é mudado para \textt{P}\\
+
+  O processo permanece na memória até terminar.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Next Fit (NF)}
+  Este gerenciador também usa diretamente a lista da memória virtual. Quando o \texttt{t_secs} chega no instante \texttt{t0} de um processo, se há algum espaço livre que caiba o processo, o processo é atribuído àquela parte da memória virtual. Porém usamos um apontador de nó especial \texttt{v_last}  \\~\\
+
+  O processo permanece na memória até terminar.
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Quick Fit (QF)}
+  
+\end{frame}
+
+%------------------------------------------------
+\section{Paginação}
+%------------------------------------------------
+
+\begin{frame}
+Escrever coisas
+\end{frame}
+
+%------------------------------------------------
+\section{Testes}
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Testes}
+  Veremos alguns testes feitos com os gerenciadores de memória e algoritmos de substituição de página.
+\end{frame}
+
+\end{document}
