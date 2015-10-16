@@ -204,22 +204,41 @@ void __write_bytes(FILE* stream, int i, int f, unsigned char val) {
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Paginação}
-Escrever coisas
+  \frametitle{Paginação}
+  Para paginação, rodamos cada processo e se no tempo $t_i$ houver um acesso, vemos se a memória a
+  ser acessada está na memória física. Se não estiver, page fault e usamos um dos algoritmos de
+  substituição de página. Senão não fazemos nada, já que estamos apenas simulando e não realmente
+  lendo a memória.
 \end{frame}
 
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Not Recently Used Page (NRU)}
-Coisas da vida
+  \frametitle{Not Recently Used Page (NRU)}
+  Foi usado um vetor \texttt{virt\_refs::internal} para representar cada página da memória virtual.
+  Nesse vetor estão os dados de acesso de cada página. Dado um elemento $e_i$, se $e_i=-1$, então
+  ele não foi acessado recentemente. Senão, se $e_i=0$, então ele foi acessado neste ciclo. Senão,
+  entao $e_i>0$ e portanto ele foi acessado $e_i$ segundos atrás. Se $e_i$ for maior ou igual ao
+  limite \texttt{INTERRUPT\_DT} que representa o tempo decorrido após cada \textit{reset}, então
+  $e_i=-1$.
+
+  A função \texttt{nru\_repl} procura por $e_i,...,e_j$ que sejam, juntos, do tamanho requisitado e
+  que tenham menor peso. Definimos peso como:
+
+  $w_i = 1$, se $e_i \geq 0$ \\
+  $w_i = 0$, se $e_i < 0$
+
+  Portanto, queremos $min(\sum_{k=i}^j w_k)$.
 \end{frame}
 
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{First-In, First-Out (FIFO)}
-Coisas do universo
+  \frametitle{First-In, First-Out (FIFO)}
+  Neste algoritmo de substituição de página, apenas temos uma fila \texttt{page\_queue} e toda vez
+  que há um \textit{page fault}, pegam-se as $n$ primeiras páginas ocupadas (e portanto mais
+  "velhas") tal que a soma dos tamanhos delas sejam a menor soma possível e que sejam também maior
+  ou igual ao tamanho requerido.
 \end{frame}
 
 %------------------------------------------------

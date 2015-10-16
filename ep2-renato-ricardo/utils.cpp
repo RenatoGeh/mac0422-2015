@@ -27,13 +27,11 @@ namespace {
     while (i++ <= f)
       fwrite(&val, sizeof(val), sizeof(val), stream);
   }
-}
 
-namespace {
   unsigned char __read_bytes(FILE* stream, int i) {
     unsigned char val;
     fseek(stream, i, SEEK_SET);
-    
+
     fread(&val, sizeof(val), sizeof(val), stream);
 
     return val;
@@ -61,23 +59,23 @@ void print(double t) {
 	int i;
 	mem_node *node;
 	unsigned char val;
-	
+
 	/*Itera pelo arquivo da memória física e imprime os valores*/
 	printf("\n\n\n\n==================================\n\n Tempo:%f\n\n",t);
-	printf("Memória Física:\n{ ");
-	for(i = 0; i < t_size*8; i += 8) {
+	printf("Memória Física:\n{\n");
+	for(i = 0; i < t_size; ++i) {
 		val = read_phys(i);
 		printf("[%u] ", val);
 	}
-	printf("}\n\n");
+	printf("\n}\n\n");
 
 	/*Itera pelo arquivo da memória virtual e imprime os valores*/
-	printf("Memória Virtual:\n{ ");
-	for(i = 0; i < v_size*8; i += 8) {
+	printf("Memória Virtual:\n{\n");
+	for(i = 0; i < v_size; ++i) {
 		val = read_virt(i);
 		printf("[%u] ", val);
 	}
-	printf("}\n\n");
+	printf("\n}\n\n");
 
 	/*Itera pela lista ligada da memória virtual*/
 	printf("Lista da memória virtual:\n");

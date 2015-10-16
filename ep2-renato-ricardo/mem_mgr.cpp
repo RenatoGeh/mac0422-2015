@@ -93,7 +93,7 @@ void run_mem_mgr(int dt) {
 
       if (page_alg == PAGE_ALG::NRU)
         nru_refresh((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
-      
+
       if (d_t < dt)
         d_t += ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
       else {
