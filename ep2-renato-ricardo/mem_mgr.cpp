@@ -41,6 +41,7 @@ void run_mem_mgr(int dt) {
   mem_status_dt = dt;
   mem_node* (*mgr) (int);
   mem_node* (*page_mgr) (int);
+  double d_t = dt;
 
   mgr = mem_alg_mgrs[mem_alg-1];
   page_mgr = page_alg_mgrs[page_alg-1];
@@ -64,8 +65,9 @@ void run_mem_mgr(int dt) {
     top->v_alloc_mem = alloc;
     write_virt(top->v_alloc_mem->i, top->v_alloc_mem->i+top->v_alloc_mem->s, top->id);
 
-    while (top->t0 <= t_secs)
+    while (top->t0 >= t_secs) {
       t_secs = ((double)(clock()-i_clock)/((double)CLOCKS_PER_SEC));
+    }
 
     while (rt > 0) {
       clock_t r_clock = clock();
@@ -91,6 +93,13 @@ void run_mem_mgr(int dt) {
 
       if (page_alg == PAGE_ALG::NRU)
         nru_refresh((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
+      
+      if (d_t < dt)
+        d_t += ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
+      else {
+        print(t_secs);
+        d_t = 0;
+      }
 
       double cycle_secs = ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
       t_secs += cycle_secs;

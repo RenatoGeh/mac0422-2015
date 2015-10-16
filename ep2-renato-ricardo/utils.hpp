@@ -86,11 +86,11 @@ void write_phys(int i, int f, unsigned char val);
 void write_virt(int i, int f, unsigned char val);
 
 /* Le o byte no range [i, i+"byte"], traduz para char e o retorna */
-unsigned char read_phys(int i, unsigned char val);
-unsigned char read_virt(int i, unsigned char val);
+unsigned char read_phys(int i);
+unsigned char read_virt(int i);
 
 /*Função que imprime as informações das memórias e listas ligadas*/
-void print();
+void print(double t);
 
 /* Listas crescentes de listas de tamanhos de espaços livres (multiplos de 2),
  * dobrando a cada node e voltando até a cabeca.
