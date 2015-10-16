@@ -43,6 +43,7 @@ void run_mem_mgr(int dt) {
   mem_node* (*mgr) (int);
   mem_node* (*page_mgr) (int);
   double d_t = dt;
+  int count = 0;
 
   mgr = mem_alg_mgrs[mem_alg-1];
   page_mgr = page_alg_mgrs[page_alg-1];
@@ -96,8 +97,9 @@ void run_mem_mgr(int dt) {
       if (d_t < dt)
         d_t += cycle_secs;
       else {
-        print(t_secs);
+        print(count);
         d_t = 0;
+        count+=dt;
       }
 
       t_secs += cycle_secs;

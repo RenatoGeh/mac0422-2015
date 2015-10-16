@@ -55,13 +55,13 @@ void write_virt(int i, int f, unsigned char val) {
   __write_bytes(out_virt, i, f, val);
 }
 
-void print(double t) {
+void print(int t) {
 	int i;
 	mem_node *node;
 	unsigned char val;
 
 	/*Itera pelo arquivo da memória física e imprime os valores*/
-	printf("\n\n\n\n==================================\n\n Tempo:%f\n\n",t);
+	printf("\n\n\n\n==================================\n\n Tempo:%d\n\n",t);
 	printf("Memória Física:\n{\n");
 	for(i = 0; i < t_size; ++i) {
 		val = read_phys(i);

@@ -90,7 +90,7 @@ unsigned char read_phys(int i);
 unsigned char read_virt(int i);
 
 /*Função que imprime as informações das memórias e listas ligadas*/
-void print(double t);
+void print(int t);
 
 /* Listas crescentes de listas de tamanhos de espaços livres (multiplos de 2),
  * dobrando a cada node e voltando até a cabeca.
@@ -99,7 +99,7 @@ extern size_node *t_size_h;
 extern size_node *v_size_h;
 
 /* Todos limites são log2 de seu valor real: se o limite superior virtual
- * for 1024, v_ls será 10 por exemplo
+ * for 1024, v_ls sera 10 por exemplo
  */
 
 /* Limite superior para a memória total */
@@ -110,7 +110,7 @@ extern int v_ls;
 extern int li;
 
 /* Atualiza os valores dos limites superiores para a memória total e virtual.
- * Importante: precisa que já tenha recebido os valores t_size e v_size
+ * Importante: precisa que ja tenha recebido os valores t_size e v_size
  */
 void get_limits(void);
 

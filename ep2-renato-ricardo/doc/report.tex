@@ -119,7 +119,7 @@ void __write_bytes(FILE* stream, int i, int f, unsigned char val) {
   \frametitle{mem\_node e size\_node}
   Para manipular a memória virtual, utilizamos duas structs diferentes, uma representando um bloco na memória virtual e outro que é apenas usado para o algoritmo Quick Fit \\~\\
 
-  \texttt{mem\_node}: Possui 6 campos: (\texttt{char t}) para o tipo do bloco, (\texttt{int i}) para a posição início da memória do bloco, (\texttt{int s}) para tamanho do bloco, (\texttt{mem\_node *n}) e (\texttt{mem\_node *p}) como ponteiros para os pŕoximos nós da lista. \\~\\
+  \texttt{mem\_node}: Possui 6 campos: (\texttt{char t}) para o tipo do bloco, (\texttt{int i}) para a posição início da memória do bloco, (\texttt{int s}) para tamanho do bloco, (\texttt{int pid}) para o identificador do processo utilizando o bloco, (\texttt{mem\_node *n}) e (\texttt{mem\_node *p}) como ponteiros para os pŕoximos nós da lista. \\~\\
 
   \texttt{size\_node}: Lista de listas de tamanhos de blocos para o algoritmo Quick Fit. Possui 4 campos. (\texttt{int s}) para tamanho dos blocos da lista que o nó aponta, (\texttt{mem\_node *f}) como ponteiro para uma lista ligada sem cabeça com os blocos livres de tamanho \texttt{s}, (\texttt{size\_node *n}) e (\texttt{size\_node *p}) como ponteiros para os pŕoximos nós da lista.
 \end{frame}
@@ -236,7 +236,7 @@ void __write_bytes(FILE* stream, int i, int f, unsigned char val) {
 \begin{frame}
   \frametitle{First-In, First-Out (FIFO)}
   Neste algoritmo de substituição de página, apenas temos uma fila \texttt{page\_queue} e toda vez
-  que há um \textit{page fault}, pegam-se as $n$ primeiras páginas ocupadas (e portanto mais
+  que ocorre um \textit{page fault}, pegam-se as $n$ primeiras páginas ocupadas (e portanto mais
   "velhas") tal que a soma dos tamanhos delas sejam a menor soma possível e que sejam também maior
   ou igual ao tamanho requerido.
 \end{frame}
@@ -245,31 +245,35 @@ void __write_bytes(FILE* stream, int i, int f, unsigned char val) {
 
 \begin{frame}
 \frametitle{Second-Chance Page (SC)}
--
+Muito parecido com nosso FIFO, o algoritmo SC vai usar uma fila \texttt{page\_queue}, porém ao ocorrer uma page fault, antes de retirar automaticamente a página do topo (as mais "velhas"), ele verifica o elemento $e_i$ da pagina. Caso ele for >= 0, faz ele virar -1 e põe a página no fim da fila. Caso o contrário apenas remove que nem o algoritmo FIFO.
 \end{frame}
 
 %------------------------------------------------
 
 \begin{frame}
 \frametitle{Least Recently Used Page (LRU)}
--
+
 \end{frame}
 
 %------------------------------------------------
-\section{Testes e Observações Finais}
+\section{Observações Finais}
 %------------------------------------------------
 
-\begin{frame}
-  \frametitle{Testes}
-  Veremos alguns testes feitos com os gerenciadores de memória e algoritmos de substituição de página.
-\end{frame}
 
-%------------------------------------------------
 
 \begin{frame}
   \frametitle{Observações}
   Nosso algoritmo Quick Fit divide a memória virtual até tamanhos maiores ou iguais que o limite inferior, o que gera um problema de desperdício de memória, pois se a memória não for múltiplo dele (16 no caso),
   é possível que até 15 bytes sejam desperdiçados e nunca utilizados, mas comparado com a memória virtual disponível não é de grande impacto esse valor.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Problemas}
+  Encontramos alguns problemas na execução do nosso programa. A impressão ocorre corretamente, mas o programa trava após certas manipulações da memória física...
+
+
 \end{frame}
 
 \end{document}
