@@ -91,7 +91,6 @@ mem_node* nf_phys_alloc(int size) {
   mem_node *limit = nullptr;
 
   for(node = t_last->n; node != t_last; node = node->n) {
-      printf("[%d]%d vs %d\n", node->i, node->s, size);
     if (node->t == 'L' && node->s >= size){
       if(node->s > size) {
         temp = new mem_node('L', node->i + size, node->s - size, node->n, node);

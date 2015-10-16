@@ -1,6 +1,9 @@
 1. Compilação
   Para compilar basta
     $ make
+  Caso haja algum problema, faça
+    $ make clean
+    $ make
   Para o EP usamos C++11 (-std=c++11) com g++.
 
 2. Execução
