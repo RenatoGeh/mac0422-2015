@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <ctime>
 
 #include "main.hpp"
 #include "utils.hpp"
@@ -77,10 +78,10 @@ void run_mem_mgr(int dt) {
           if (page_alg == PAGE_ALG::NRU || page_alg == PAGE_ALG::SC)
             virt_refs::internal[n_pos.first + top->t_alloc_mem->i] = 0;
         } else /* PAGE FAULT */ {
-          int _page_size = 16, k = top->v_alloc_mem->s;
+          int _page_size = 16;/*, k = top->v_alloc_mem->s;
           for (;_page_size<k;_page_size<<=1);
           top->t_alloc_mem = nf_phys_alloc(_page_size);
-          if (top->t_alloc_mem == nullptr)
+          if (top->t_alloc_mem == nullptr)*/
             top->t_alloc_mem = page_mgr(_page_size);
           top->t_alloc_mem->t = 'P';
           int st = top->t_alloc_mem->i;
