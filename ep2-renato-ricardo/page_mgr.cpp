@@ -1,6 +1,7 @@
 #include "page_mgr.hpp"
 
 #include <queue>
+#include <cstdio>
 
 #include "utils.hpp"
 
@@ -54,6 +55,7 @@ mem_node *nru_repl(int req_size) {
     while (size > 0) {
       size -= it->s;
       next = it->n;
+      next->p = start;
       delete it;
       it = next;
       start->s += it->s;
@@ -86,8 +88,10 @@ mem_node *nru_repl(int req_size) {
 mem_node* nf_phys_alloc(int size) {
   static mem_node *t_last = t_mem_h;
   mem_node *node, *temp;
+  mem_node *limit = nullptr;
 
   for(node = t_last->n; node != t_last; node = node->n) {
+      printf("[%d]%d vs %d\n", node->i, node->s, size);
     if (node->t == 'L' && node->s >= size){
       if(node->s > size) {
         temp = new mem_node('L', node->i + size, node->s - size, node->n, node);
@@ -105,6 +109,11 @@ mem_node* nf_phys_alloc(int size) {
         return (node);
       }
     }
+
+    if (limit == node)
+      return nullptr;
+    if (limit == nullptr)
+      limit = t_last->n;
   }
 
   return nullptr;
@@ -137,6 +146,7 @@ mem_node *sc_repl(int req_size) {
   while (virt_refs::internal[top->i/PAGE_SIZE] > 0) {
     page_queue.pop();
     page_queue.push(top);
+    virt_refs::internal[top->i/PAGE_SIZE] = -1;
     top = page_queue.front();
   }
 
