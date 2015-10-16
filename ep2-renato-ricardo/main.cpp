@@ -86,8 +86,11 @@ void parse(char *filename) {
   trace = fopen(filename, "r");
 
   fscanf(trace, "%d %d", &t_size, &v_size);
+  /*Cria as cabeças das listas para a memória virtual e física*/
   t_mem_h = new mem_node(MEM_HEADER, 0, t_size);
   v_mem_h = new mem_node(MEM_HEADER, 0, v_size);
+
+  /*Cria já dois blocos com espaço livre para as listas das memórias virtuais e física*/
 
   v_mem_h->n = new mem_node('L', 0, v_size, v_mem_h, v_mem_h);
   v_mem_h->p = v_mem_h->n;
