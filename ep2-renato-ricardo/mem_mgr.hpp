@@ -6,6 +6,9 @@
 /* Define o algoritmo de gerenciamento de espaço livre. */
 void set_mem_mgr(int opt);
 
+/* Define o algoritmo de substituicao de paginacao. */
+void set_page_mgr(int opt);
+
 /* Roda o algoritmo de gerenciamento.
  * Se set_mem_mgr não foi chamado antes usa 1 como default opt.
  */

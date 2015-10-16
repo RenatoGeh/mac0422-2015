@@ -48,13 +48,13 @@ int main(int argc, char *argv[]) {
         parse(args_table[1]);
         break;
       case evaluate_str("espaco"):
-        /* set_mem_mgr(atoi(args_table[1])); */
+        set_mem_mgr(atoi(args_table[1]));
         break;
       case evaluate_str("substitui"):
-        /* set_page_mgr(atoi(args_table[1])); */
+        set_page_mgr(atoi(args_table[1]));
         break;
       case evaluate_str("executa"):
-        /* run_mem_mgr(atoi(args_table[1])); */
+        run_mem_mgr(atoi(args_table[1]));
         break;
       case evaluate_str("sai"):
         goto cleanup;

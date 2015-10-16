@@ -33,6 +33,10 @@ void set_mem_mgr(int opt) {
     create_qf();
 }
 
+void set_page_mgr(int opt) {
+  opt = page_alg;
+}
+
 void run_mem_mgr(int dt) {
   mem_status_dt = dt;
   mem_node* (*mgr) (int);
@@ -56,35 +60,52 @@ void run_mem_mgr(int dt) {
     double rt = top->tf - top->t0;
 
     mem_node *alloc = mgr(top->b);
+    alloc->t = 'P';
     top->v_alloc_mem = alloc;
     write_virt(top->v_alloc_mem->i, top->v_alloc_mem->i+top->v_alloc_mem->s, top->id);
 
-    while (rt > 0) {
-      if (top->t0 <= t_secs) {
-        clock_t r_clock = clock();
+    while (top->t0 <= t_secs)
+      t_secs = ((double)(clock()-i_clock)/((double)CLOCKS_PER_SEC));
 
-        if (n_pos.second <= t_secs) {
+    while (rt > 0) {
+      clock_t r_clock = clock();
+
+      if (n_pos.second <= t_secs) {
+        if (top->t_alloc_mem != nullptr) {
+          if (page_alg == PAGE_ALG::NRU)
+            virt_refs::internal[n_pos.first + top->t_alloc_mem->i] = 0;
+        } else /* PAGE FAULT */ {
           int _page_size = 16, k = top->v_alloc_mem->s;
           for (;_page_size<k;_page_size<<=1);
 
           top->t_alloc_mem = nf_phys_alloc(_page_size);
 
-          if (top->t_alloc_mem == nullptr) {
+          if (top->t_alloc_mem == nullptr)
             top->t_alloc_mem = page_mgr(_page_size);
-          }
 
+          top->t_alloc_mem->t = 'P';
           int st = top->t_alloc_mem->i;
           write_phys(st, st + top->t_alloc_mem->s, top->id);
         }
-
-        if (page_alg == PAGE_ALG::NRU)
-          nru_refresh((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
-
-        rt += ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
       }
 
-      t_secs = ((double)(clock()-i_clock)/((double)CLOCKS_PER_SEC));
+      if (page_alg == PAGE_ALG::NRU)
+        nru_refresh((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
+
+      rt += ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
     }
+
+    auto phys_alloc = top->t_alloc_mem;
+    auto virt_alloc = top->v_alloc_mem;
+
+    phys_alloc->t = virt_alloc->t = 'L';
+    phys_alloc->pid = virt_alloc->pid = -1;
+
+    write_phys(phys_alloc->i, phys_alloc->i + phys_alloc->s, -1);
+    write_virt(virt_alloc->i, virt_alloc->i + virt_alloc->s, -1);
+
+    delete top;
+
     p_queue.pop();
   }
 }
