@@ -30,19 +30,22 @@ namespace {
 }
 
 namespace {
-  void __write_bytes(FILE* stream, int i, unsigned char val) {
+  unsigned char __read_bytes(FILE* stream, int i) {
+    unsigned char val;
     fseek(stream, i, SEEK_SET);
     
     fread(&val, sizeof(val), sizeof(val), stream);
+
+    return val;
   }
 }
 
-void read_phys(int i, unsigned char val) {
-	__read_bytes(out_phys, i, val);
+unsigned char read_phys(int i) {
+	return(__read_bytes(out_phys, i));
 }
 
-void read_virt(int i, unsigned char val) {
-	__read_bytes(out_virt, i, val);
+unsigned char read_virt(int i) {
+	return(__read_bytes(out_virt, i));
 }
 
 
@@ -52,6 +55,38 @@ void write_phys(int i, int f, unsigned char val) {
 
 void write_virt(int i, int f, unsigned char val) {
   __write_bytes(out_virt, i, f, val);
+}
+
+void print(){
+	int i;
+	mem_node *node;
+	unsigned char val;
+	
+	/*Itera pelo arquivo da memória física e imprime os valores*/
+	printf("Memória Física:\n{ ");
+	for(i = 0; i < t_size*8; i += 8) {
+		val = read_phys(i);
+		printf("[%u] ", val);
+	}
+	printf("}\n\n");
+
+	/*Itera pelo arquivo da memória virtual e imprime os valores*/
+	printf("Memória Virtual:\n{ ");
+	for(i = 0; i < v_size*8; i += 8) {
+		val = read_virt(i);
+		printf("[%u] ", val);
+	}
+	printf("}\n\n");
+
+	/*Itera pela lista ligada da memória virtual*/
+	printf("Lista da memória virtual:");
+	for(node = v_mem_h->n; node != v_mem_h; node = node->n){
+		printf("[ Bloco: %c || Início: Byte %d || Tamanho: %d Byte(s) ||--->]\n", node->t, node->i, node->s);
+	}
+
+	printf("\n\n\n");
+
+
 }
 
 void get_limits(void){
