@@ -1,4 +1,7 @@
 #include "page_mgr.hpp"
+
+#include <queue>
+
 #include "utils.hpp"
 
 #define INTERRUPT_DT 2
@@ -107,6 +110,25 @@ mem_node* nf_phys_alloc(int size) {
   return nullptr;
 }
 
-mem_node *fifo_repl(int req_size) { return nullptr; }
+static std::queue<mem_node*> page_queue;
+
+mem_node *fifo_repl(int req_size) {
+  mem_node *top = page_queue.front();
+  mem_node *start = top;
+
+  while (start->s < req_size) {
+    start->s += top->s;
+    start->n = top->n;
+    top->n->p = start;
+    delete top;
+    page_queue.pop();
+    top = page_queue.front();
+  }
+
+  page_queue.push(start);
+
+  return start;
+}
+
 mem_node *sc_repl(int req_size) { return nullptr; }
 mem_node *lru_repl(int req_size) { return nullptr; }
