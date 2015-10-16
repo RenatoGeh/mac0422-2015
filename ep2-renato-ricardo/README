@@ -1,1 +1,14 @@
-Foi considerado 255 como -1 nos arquivos binários.
+1. Compilação
+  Para compilar basta
+    $ make
+  Para o EP usamos C++11 (-std=c++11) com g++.
+
+2. Execução
+  Para rodar basta
+    $ ./run [trace_file]
+  Onde trace_file é um arquivo trace opcional.
+
+3. Considerações:
+  Foi considerado 255 como -1 nos arquivos binários.
+
+Para mais detalhes veja doc/report.pdf.

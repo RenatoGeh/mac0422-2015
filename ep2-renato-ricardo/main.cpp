@@ -30,10 +30,8 @@ int main(int argc, char *argv[]) {
   out_phys = fopen("/tmp/ep2.mem", "wb+");
   out_virt = fopen("/tmp/ep2.vir", "wb+");
 
-  if (!interactive) {
+  if (!interactive)
     parse(argv[1]);
-    goto cleanup;
-  }
 
   using_history();
 

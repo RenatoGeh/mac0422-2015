@@ -8,7 +8,7 @@
 
  \usetheme{Frankfurt}
  \setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
- 
+
  \setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
 
  %\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
@@ -22,7 +22,7 @@
 %----------------------------------------------------------------------------------------
 
 \title[EP2 - MAC0422]{EP2 - MAC0422 - 2015 \\
-                      main, mem\_mgr e page\_mgr} % The short title appears at the bottom of every slide, the full title is only on the title page
+                      main, utils,  mem\_mgr e page\_mgr} % The short title appears at the bottom of every slide, the full title is only on the title page
 \author{Renato Lui Geh e Ricardo Fonseca}
 \date{}
 \begin{document}
@@ -41,8 +41,65 @@
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{main}
-  Escrever coisas
+  \frametitle{Linha de input}
+  Assim como no EP1, há uma string \texttt{cmd} que é a linha de input do usuário. Em seguida
+  dividimos \texttt{cmd} em tokens tais que cada par de token $(t_i,t_{i+1})$, quando concatenados
+  produzem uma subsequência de \texttt{cmd}. Ou seja, a concatenação $(t_0,...,t_k)$ resulta em
+  \texttt{cmd}. Isso é feito na função \texttt{extract\_args}. O token $t_i$ equivale ao código
+  \texttt{args\_table[i]}. Note que $t_0$ equivale ao próprio comando, e não o primeiro argumento
+  do comando.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Prompt}
+  Foi usado \texttt{readline} para o prompt, assim como foi feito no EP1.
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{evaluate\_str}}
+  C e C++ não permitem usar \texttt{switch} com cstrings (\texttt{char*}). Portanto para podermos
+  comparar o comando num \texttt{switch} precisamos transformar a string em um \texttt{unsigned
+  int}. Para isso usamos \texttt{evaluate\_str}.
+
+  \begin{lstlisting}[language=C++,basicstyle=\scriptsize]
+/* Transforma string em um unsigned integer. */
+constexpr unsigned int evaluate_str(const char* str, int h = 0) {
+  return !str[h] ? 5381 : (evaluate_str(str, h+1)*33) ^ str[h];
+}
+  \end{lstlisting}
+
+  O que fazemos é passar por cada caractere $c_i$ da string e transforma-lo em um número inteiro
+  não negativo $k_i$ tal que ele seja dependente do último caractere, ou seja, dada uma
+  transformação $T:char \to \mathbb{Z}^+$ então $k_i = T(c_i)|T(c_{i-1})$ (leia-se $k_i$ é a
+  transformação de $c_i$ dada a transformação de $c_{i-1}$).
+\end{frame}
+
+\begin{frame}
+  \frametitle{Parsing}
+  A função \texttt{parse} lê o arquivo de trace e cria os processos e memória a serem simuladas.
+\end{frame}
+
+%------------------------------------------------
+\section{utils}
+%------------------------------------------------
+
+\begin{frame}[fragile]
+  \frametitle{Escrevendo bytes}
+  Para escrevermos a memória byte a byte, foi usada a função \texttt{fwrite} da \texttt{cstdio}.
+  Para garantirmos que o que realmente escrevemos é um byte, usamos um \texttt{unsigned char}. Para
+  representar o número -1, foi escolhido 255 para representar memória livre. Portanto, no total,
+  podemos ter 255 processos rodando.
+
+  \begin{lstlisting}[language=C++,basicstyle=\scriptsize]
+void __write_bytes(FILE* stream, int i, int f, unsigned char val) {
+  fseek(stream, i, SEEK_SET);
+
+  while (i++ <= f)
+    fwrite(&val, sizeof(val), sizeof(val), stream);
+}
+  \end{lstlisting}
+
+  Aqui pode-se ver que o intervalo $[i, f]$ (ambos extremos inclusivos) é escrito com o valor $val$.
 \end{frame}
 
 %------------------------------------------------
@@ -81,7 +138,7 @@
 \begin{frame}
   \frametitle{Listas Ligadas}
   Em todos os gerenciadores implementados foram usadas a lista com a cabeça \texttt{v\_mem\_h}. Para a memória física total utiliza-se \texttt{t\_mem\_h} \\~\\
-  
+
   \texttt{v\_mem\_h}: guarda todos os blocos de memória livres ou ocupados na memória virtual. O algoritmo Quick Fit utiliza de forma um pouco diferente essa lista. \\~\\
 
   \texttt{t\_mem\_h}: guarda todos os blocos de memória ocupando a memória física total.
@@ -92,7 +149,7 @@
 \begin{frame}
   \frametitle{First Fit (FF)}
   Este gerenciador usa diretamente a lista da memória virtual. Quando o \texttt{t\_secs} chega no instante \texttt{t0} de um processo, se há algum espaço livre que ele caiba, o processo é atribuído àquela parte da memória virtual.
-  O bloco de memória é mudado para \textt{P}. \\~\\
+  O bloco de memória é mudado para \texttt{P}. \\~\\
 
   O processo permanece na memória até terminar.
 \end{frame}
@@ -114,9 +171,7 @@
     \item Divide em 4 esse espaço, e aproxima até o maior multiplo de 2 menor que esse valor.
     \item Se o resultado for maior que o limite inferior (definido por nós como 16, de acordo com o tamanho das páginas), separa 3/4 do tamanho total recebido pela função como espaço livre nas listas (para cada 1/3 é criado um bloco de espaço livre desse tamanho pŕoximo de 1/4 do tamanho total). Em seguida chama a função recursivamente para o restante do espaço.
     \item Caso o resultado seja igual ou menor que o limite inferior, separa o maior numero de intervalos com tamanho limite inferior como espaço livre na lista do quick fit.
-  \end{itemize} \\~\\
-
-
+  \end{itemize}
 \end{frame}
 
 %------------------------------------------------

@@ -92,7 +92,9 @@ void run_mem_mgr(int dt) {
       if (page_alg == PAGE_ALG::NRU)
         nru_refresh((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
 
-      rt += ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
+      double cycle_secs = ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
+      t_secs += cycle_secs;
+      rt -= cycle_secs;
     }
 
     auto phys_alloc = top->t_alloc_mem;
