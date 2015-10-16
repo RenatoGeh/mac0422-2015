@@ -29,6 +29,23 @@ namespace {
   }
 }
 
+namespace {
+  void __write_bytes(FILE* stream, int i, unsigned char val) {
+    fseek(stream, i, SEEK_SET);
+    
+    fread(&val, sizeof(val), sizeof(val), stream);
+  }
+}
+
+void read_phys(int i, unsigned char val) {
+	__read_bytes(out_phys, i, val);
+}
+
+void read_virt(int i, unsigned char val) {
+	__read_bytes(out_virt, i, val);
+}
+
+
 void write_phys(int i, int f, unsigned char val) {
   __write_bytes(out_phys, i, f, val);
 }
