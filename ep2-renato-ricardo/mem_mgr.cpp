@@ -1,6 +1,7 @@
 #include "mem_mgr.hpp"
 
 #include <cmath>
+#include <cstdio>
 
 #include "main.hpp"
 #include "utils.hpp"
@@ -46,7 +47,7 @@ void run_mem_mgr(int dt) {
   mgr = mem_alg_mgrs[mem_alg-1];
   page_mgr = page_alg_mgrs[page_alg-1];
 
-  if (page_alg == PAGE_ALG::NRU) {
+  if (page_alg == PAGE_ALG::NRU || page_alg == PAGE_ALG::SC) {
     virt_refs::internal = new double[(virt_refs::size = v_size/PAGE_SIZE)];
     for (int i=0;i<virt_refs::size;++i)
       virt_refs::internal[i] = -1;
@@ -65,47 +66,43 @@ void run_mem_mgr(int dt) {
     top->v_alloc_mem = alloc;
     write_virt(top->v_alloc_mem->i, top->v_alloc_mem->i+top->v_alloc_mem->s, top->id);
 
-    while (top->t0 >= t_secs) {
+    while (top->t0 > t_secs)
       t_secs = ((double)(clock()-i_clock)/((double)CLOCKS_PER_SEC));
-    }
 
     while (rt > 0) {
       clock_t r_clock = clock();
 
       if (n_pos.second <= t_secs) {
         if (top->t_alloc_mem != nullptr) {
-          if (page_alg == PAGE_ALG::NRU)
+          if (page_alg == PAGE_ALG::NRU || page_alg == PAGE_ALG::SC)
             virt_refs::internal[n_pos.first + top->t_alloc_mem->i] = 0;
         } else /* PAGE FAULT */ {
           int _page_size = 16, k = top->v_alloc_mem->s;
           for (;_page_size<k;_page_size<<=1);
-
           top->t_alloc_mem = nf_phys_alloc(_page_size);
-
           if (top->t_alloc_mem == nullptr)
             top->t_alloc_mem = page_mgr(_page_size);
-
           top->t_alloc_mem->t = 'P';
           int st = top->t_alloc_mem->i;
           write_phys(st, st + top->t_alloc_mem->s, top->id);
         }
       }
 
-      if (page_alg == PAGE_ALG::NRU)
+      if (page_alg == PAGE_ALG::NRU || page_alg == PAGE_ALG::SC)
         nru_refresh((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
 
+      double cycle_secs = ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
+
       if (d_t < dt)
-        d_t += ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
+        d_t += cycle_secs;
       else {
         print(t_secs);
         d_t = 0;
       }
 
-      double cycle_secs = ((double)(clock()-r_clock)/((double)CLOCKS_PER_SEC));
       t_secs += cycle_secs;
       rt -= cycle_secs;
     }
-
     auto phys_alloc = top->t_alloc_mem;
     auto virt_alloc = top->v_alloc_mem;
 
@@ -115,9 +112,8 @@ void run_mem_mgr(int dt) {
     write_phys(phys_alloc->i, phys_alloc->i + phys_alloc->s, -1);
     write_virt(virt_alloc->i, virt_alloc->i + virt_alloc->s, -1);
 
-    delete top;
-
     p_queue.pop();
+    delete top;
   }
 }
 

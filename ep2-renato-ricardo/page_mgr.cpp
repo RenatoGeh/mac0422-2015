@@ -130,5 +130,28 @@ mem_node *fifo_repl(int req_size) {
   return start;
 }
 
-mem_node *sc_repl(int req_size) { return nullptr; }
+mem_node *sc_repl(int req_size) {
+  mem_node *top = page_queue.front();
+  mem_node *start = top;
+
+  while (virt_refs::internal[top->i/PAGE_SIZE] > 0) {
+    page_queue.pop();
+    page_queue.push(top);
+    top = page_queue.front();
+  }
+
+  while (start->s < req_size) {
+    start->s += top->s;
+    start->n = top->n;
+    top->n->p = start;
+    delete top;
+    page_queue.pop();
+    top = page_queue.front();
+  }
+
+  page_queue.push(start);
+
+  return start;
+}
+
 mem_node *lru_repl(int req_size) { return nullptr; }
