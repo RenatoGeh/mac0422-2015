@@ -11,6 +11,9 @@ namespace Utils {
   /* Prompt. */
   extern const char *kPrompt;
 
+  /* Tamanho maximo do sistema de arquivos. */
+  extern const int kSystemSize;
+
   /* Tamanho em bytes de um bloco. */
   extern const int kBlockSize;
 

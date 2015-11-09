@@ -14,7 +14,12 @@ namespace Utils {
   /* -- Constants -- */
 
   const char *kPrompt = "[ep3]: ";
+
+  /* 100MB */
+  const int kSystemSize = 100000000;
+  /* 4KB */
   const int kBlockSize = 4000;
+
   const char *kCommands[] = {"mount", "cp", "mkdir", "rmdir", "cat", "touch", "rm", "ls", "find",
     "df", "umount", "sai"};
 

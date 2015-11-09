@@ -9,7 +9,7 @@ class File {
     File(const std::string &name, time_t t_create, time_t t_modify, time_t t_access);
     ~File(void);
 
-    const std::string& GetName(void) { return name_; }
+    const std::string& GetName(void) const { return name_; }
     void Rename(const std::string& name) { name_.assign(name); }
 
     time_t GetCreateTime(void) { return t_create_; }
@@ -23,6 +23,10 @@ class File {
 
     virtual int GetSize(void) const = 0;
     virtual bool IsDirectory(void) const = 0;
+
+    bool operator<(const File &rval) { return name_.compare(rval.GetName())<0; }
+    bool operator==(const File &rval) { return !name_.compare(rval.GetName()); }
+    bool operator>(const File &rval) { return name_.compare(rval.GetName())>0; }
 
   private:
     std::string name_;

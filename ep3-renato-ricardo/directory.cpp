@@ -3,28 +3,31 @@
 #include <cstdio>
 #include <ctime>
 #include <string>
-#include <map>
+#include <forward_list>
+#include <iterator>
 
 Directory::Directory(const std::string &name, time_t t_current) :
-  File(name, t_current, t_current, t_current), files_(), files_sizeb_(0) {}
+  File(name, t_current, t_current, t_current), files_(), n_files_(0), files_sizeb_(0) {}
 Directory::~Directory(void) {}
 
 int Directory::GetSize(void) const { return Utils::kBlockSize; }
 bool Directory::IsDirectory(void) const { return true; }
 
 void Directory::ListFiles(FILE *stream) {
-  int *digits = new int[files_.size()];
+  files_.sort([](File *lval, File *rval){ return *lval < *rval; });
+
+  int *digits = new int[n_files_];
   int max_digits = 0, i = 0;
   for (auto it = files_.begin(); it != files_.end(); ++it) {
-    int n = it->second->GetSize();
+    int n = (*it)->GetSize();
     for (digits[i] = 0; n; n /= 10, ++digits[i]);
     if (digits[i] > max_digits)
       max_digits = digits[i];
   }
 
-  fprintf(stream, "total %d bytes\n", files_sizeb_);
+  fprintf(stream, "%d files with a total of %d bytes\n", n_files_, files_sizeb_);
   for (auto it = files_.begin(); it != files_.end(); ++it) {
-    File *it_val = it->second;
+    File *it_val = *it;
     char time_buffer[128];
     time_t modt_clone = it_val->GetModifyTime();
     strftime(time_buffer, sizeof(time_buffer)/sizeof(*time_buffer), "%c", localtime(&modt_clone));
@@ -36,15 +39,28 @@ void Directory::ListFiles(FILE *stream) {
 }
 
 void Directory::InsertFile(File *f) {
-  files_.insert(std::pair<std::string, File*>(f->GetName(), f));
+  files_.push_front(f);
   files_sizeb_ += f->GetSize();
+  ++n_files_;
 }
 
 void Directory::RemoveFile(const std::string &name) {
-  files_sizeb_ -= files_.at(name)->GetSize();
-  files_.erase(name);
+  auto to_remove = files_.end();
+  for (auto it = files_.begin(); it != files_.end(); ++it) {
+    File *it_val = *it;
+    if (!name.compare(it_val->GetName())) {
+      files_sizeb_ -= it_val->GetSize();
+      to_remove = std::prev(it);
+      break;
+    }
+  }
+  files_.erase_after(to_remove);
+  --n_files_;
 }
 
 File* Directory::FindFile(const std::string &name) {
-  return files_.at(name);
+  for (auto it = files_.begin(); it != files_.end(); ++it)
+    if (!name.compare((*it)->GetName()))
+      return *it;
+  return nullptr;
 }

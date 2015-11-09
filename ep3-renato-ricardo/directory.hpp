@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <ctime>
 #include <string>
-#include <map>
+#include <forward_list>
 
 #include "file.hpp"
 #include "utils.hpp"
@@ -23,9 +23,10 @@ class Directory : File {
     void RemoveFile(const std::string &name);
     File* FindFile(const std::string &name);
 
+    int GetNumFiles(void) const { return n_files_; }
   private:
-    std::map<std::string, File*> files_;
-
+    std::forward_list<File*> files_;
+    int n_files_;
     int files_sizeb_;
 };
 
