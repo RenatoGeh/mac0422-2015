@@ -9,24 +9,24 @@ class File {
     File(const std::string &name, time_t t_create, time_t t_modify, time_t t_access);
     ~File(void);
 
-    const std::string& GetName(void) const { return name_; }
+    const std::string& Name(void) const { return name_; }
     void Rename(const std::string& name) { name_.assign(name); }
 
-    time_t GetCreateTime(void) { return t_create_; }
-    void RefreshCreateTime(void) { time(&t_create_); }
+    time_t CreationTime(void) { return t_create_; }
+    void RefreshCreationTime(void) { time(&t_create_); }
 
-    time_t GetModifyTime(void) { return t_modify_; }
-    void RefreshModifyTime(void) { time(&t_modify_); }
+    time_t ModifiedTime(void) { return t_modify_; }
+    void RefreshModifiedTime(void) { time(&t_modify_); }
 
-    time_t GetAccessTime(void) { return t_access_; }
-    void RefreshAccessTime(void) { time(&t_access_); }
+    time_t AccessedTime(void) { return t_access_; }
+    void RefreshAccessedTime(void) { time(&t_access_); }
 
-    virtual int GetSize(void) const = 0;
+    virtual int Size(void) const = 0;
     virtual bool IsDirectory(void) const = 0;
 
-    bool operator<(const File &rval) { return name_.compare(rval.GetName())<0; }
-    bool operator==(const File &rval) { return !name_.compare(rval.GetName()); }
-    bool operator>(const File &rval) { return name_.compare(rval.GetName())>0; }
+    bool operator<(const File &rval) { return name_.compare(rval.Name())<0; }
+    bool operator==(const File &rval) { return !name_.compare(rval.Name()); }
+    bool operator>(const File &rval) { return name_.compare(rval.Name())>0; }
 
   private:
     std::string name_;

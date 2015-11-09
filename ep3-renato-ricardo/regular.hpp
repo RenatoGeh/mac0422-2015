@@ -12,7 +12,7 @@ class Regular : File {
     Regular(const std::string &name, time_t t_current);
     ~Regular(void);
 
-    int GetSize(void) const override;
+    int Size(void) const override;
     bool IsDirectory(void) const override;
 
     const std::string& ReadContent(FILE *stream);

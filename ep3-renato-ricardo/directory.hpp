@@ -14,7 +14,7 @@ class Directory : File {
     Directory(const std::string &name, time_t t_current);
     ~Directory(void);
 
-    int GetSize(void) const override;
+    int Size(void) const override;
     bool IsDirectory(void) const override;
 
     void ListFiles(FILE *stream);
@@ -23,7 +23,7 @@ class Directory : File {
     void RemoveFile(const std::string &name);
     File* FindFile(const std::string &name);
 
-    int GetNumFiles(void) const { return n_files_; }
+    int NumFiles(void) const { return n_files_; }
   private:
     std::forward_list<File*> files_;
     int n_files_;
