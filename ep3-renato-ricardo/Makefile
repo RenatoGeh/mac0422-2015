@@ -30,7 +30,7 @@ file.o: file.cpp file.hpp
 regular.o: regular.cpp regular.hpp file.hpp
 	g++ -c $(CFLAGS) $^
 
-utils.o: utils.cpp utils.hpp command.hpp
+utils.o: utils.cpp utils.hpp command.hpp file.hpp directory.hpp
 	g++ -c $(CFLAGS) $^
 
 .PHONY: clean

@@ -2,12 +2,14 @@
 
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 
 #include <string>
 #include <vector>
 #include <map>
 
 #include "command.hpp"
+#include "directory.hpp"
 
 namespace Utils {
   /* -- Constants -- */
@@ -21,6 +23,9 @@ namespace Utils {
 
   const char *kCommands[] = {"mount", "cp", "mkdir", "rmdir", "cat", "touch", "rm", "ls", "find",
     "df", "umount", "sai"};
+
+  /* Root ("/") */
+  const Directory kRoot("/", Time::Get()); 
 
   /* -- Functions -- */
 
@@ -60,5 +65,9 @@ namespace Utils {
     }
 
     return val;
+  }
+
+  namespace Time {
+    time_t Get(void) { return time(NULL); }
   }
 }

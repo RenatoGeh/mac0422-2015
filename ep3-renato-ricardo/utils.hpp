@@ -1,8 +1,15 @@
 #ifndef _UTILS_HPP
 #define _UTILS_HPP
 
+#include <ctime>
+
 #include <string>
 #include <vector>
+
+#include "directory.hpp"
+
+/* Forward declarations. */
+class Directory;
 
 namespace Utils {
   /* -- Constants -- */
@@ -16,8 +23,11 @@ namespace Utils {
   /* Tamanho em bytes de um bloco. */
   extern const int kBlockSize;
 
-  /* Possíveis comandos. */
+  /* Possiveis comandos. */
   extern const char *kCommands[];
+
+  /* Diretorio root. */
+  extern const Directory kRoot;
 
   /* -- Functions -- */
 
@@ -26,6 +36,10 @@ namespace Utils {
 
   /* Mapeia um comando std::string -> int. */
   void (*CommandToFunction(const std::string& cmd)) (const std::vector<std::string>&);
+
+  namespace Time {
+    time_t Get(void);
+  }
 }
 
-#endif
+#endif /* _UTILS_HPP */
