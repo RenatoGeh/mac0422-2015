@@ -4,7 +4,6 @@
 
 #include <string>
 #include <vector>
-#include <functional>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -20,9 +19,9 @@ int main(int argc, char *argv[]) {
     add_history(cmd_line);
     std::vector<std::string>& arg_table = Utils::Tokenize(cmd_line);
 
-    std::function<void(const std::vector<std::string>&)> *fn = Utils::CommandToFunction(cmd_line);
+    void (*fn) (const std::vector<std::string>&) = Utils::CommandToFunction(cmd_line);
     if (fn != nullptr)
-      (*fn)(arg_table);
+      fn(arg_table);
 
     delete cmd_line;
   } while (1);

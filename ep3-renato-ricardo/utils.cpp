@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <functional>
 
 #include "command.hpp"
 
@@ -26,33 +25,35 @@ namespace Utils {
   /* -- Functions -- */
 
   std::vector<std::string>& Tokenize(char *line) {
-    static std::vector<std::string> mapper;
+    static std::vector<std::string> a_table;
 
-    mapper.clear();
+    a_table.clear();
 
     char *tok = strtok(line, " ");
     while (tok != NULL) {
-      mapper.push_back(std::string(tok));
+      a_table.push_back(std::string(tok));
       tok = strtok(NULL, " ");
     }
 
-    return mapper;
+    return a_table;
   }
 
-  std::function<void(const std::vector<std::string>&)>* CommandToFunction(const std::string& cmd) {
+  using fn_args = void (*) (const std::vector<std::string>&);
+
+  fn_args CommandToFunction(const std::string& cmd) {
     static bool init = false;
-    static std::map<std::string, std::function<void(const std::vector<std::string>&)>> mapper;
+    static std::map<std::string, fn_args> mapper;
 
     if (!init) {
       int s = sizeof(kCommands)/sizeof(*kCommands);
       for (int i = 0; i < s; ++i)
-        mapper.insert(std::pair<std::string, std::function<void(const std::vector<std::string>&)>>(
-              kCommands[i], Command::kFunctions[i]));
+        mapper.insert(std::pair<std::string, fn_args>(kCommands[i], Command::kFunctions[i]));
+      init = true;
     }
 
-    std::function<void(const std::vector<std::string>&)> *val = nullptr;
+    fn_args val = nullptr;
     try {
-      *val = mapper.at(cmd);
+      val = mapper.at(cmd);
     } catch(const std::out_of_range &exc) {
       fprintf(stderr, "%s, command not found\n", cmd.c_str());
       return nullptr;

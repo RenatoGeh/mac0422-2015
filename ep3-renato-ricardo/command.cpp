@@ -51,7 +51,7 @@ namespace Command {
   }
 
   void sai(ArgsTable args) {
-
+    exit(0);
   }
 
   using Function = void (*)(ArgsTable);

@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <functional>
 
 namespace Utils {
   /* -- Constants -- */
@@ -26,7 +25,7 @@ namespace Utils {
   std::vector<std::string>& Tokenize(char *line);
 
   /* Mapeia um comando std::string -> int. */
-  std::function<void(const std::vector<std::string>&)>* CommandToFunction(const std::string& cmd);
+  void (*CommandToFunction(const std::string& cmd)) (const std::vector<std::string>&);
 }
 
 #endif
