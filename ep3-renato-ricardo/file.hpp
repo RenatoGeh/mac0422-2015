@@ -21,12 +21,12 @@ class File {
     time_t AccessedTime(void) { return t_access_; }
     void RefreshAccessedTime(void) { time(&t_access_); }
 
-    virtual int Size(void) const = 0;
+    virtual long int Size(void) const = 0;
     virtual bool IsDirectory(void) const = 0;
 
-    bool operator<(const File &rval) { return name_.compare(rval.Name())<0; }
-    bool operator==(const File &rval) { return !name_.compare(rval.Name()); }
-    bool operator>(const File &rval) { return name_.compare(rval.Name())>0; }
+    friend bool operator<(const File &lval, const File &rval);
+    friend bool operator==(const File &lval, const File &rval);
+    friend bool operator>(const File &lval, const File &rval);
 
   private:
     std::string name_;
@@ -35,5 +35,17 @@ class File {
     time_t t_modify_;
     time_t t_access_;
 };
+
+inline bool operator<(const File &lval, const File &rval) {
+  return lval.name_.compare(rval.name_)<0;
+}
+
+inline bool operator==(const File &lval, const File &rval) {
+  return !lval.name_.compare(rval.name_);
+}
+
+inline bool operator>(const File &lval, const File &rval) {
+  return lval.name_.compare(rval.name_)>0;
+}
 
 #endif /* _FILE_HPP */

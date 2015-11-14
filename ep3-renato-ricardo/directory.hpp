@@ -14,7 +14,7 @@ class Directory : File {
     Directory(const std::string &name, time_t t_current);
     ~Directory(void);
 
-    int Size(void) const override;
+    long int Size(void) const override;
     bool IsDirectory(void) const override;
 
     void ListFiles(FILE *stream);
@@ -27,7 +27,7 @@ class Directory : File {
   private:
     std::forward_list<File*> files_;
     int n_files_;
-    int files_sizeb_;
+    long int files_sizeb_;
 };
 
 #endif /* _DIRECTORY_HPP */

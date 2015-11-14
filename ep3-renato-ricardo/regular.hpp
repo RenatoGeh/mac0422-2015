@@ -6,21 +6,22 @@
 #include <string>
 
 #include "file.hpp"
+#include "block.hpp"
 
 class Regular : File {
   public:
     Regular(const std::string &name, time_t t_current);
     ~Regular(void);
 
-    int Size(void) const override;
+    long int Size(void) const override;
     bool IsDirectory(void) const override;
 
-    const std::string& ReadContent(FILE *stream);
+    std::string ReadContent(FILE *stream);
     void WriteContent(const std::string& data);
 
   private:
-    std::string content_;
-    int sizeb_;
+    Block *block_head_;
+    long int sizeb_;
 };
 
 #endif /* _REGULAR_HPP */

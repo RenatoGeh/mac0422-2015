@@ -10,6 +10,7 @@
 
 #include "command.hpp"
 #include "directory.hpp"
+#include "block.hpp"
 
 namespace Utils {
   /* -- Constants -- */
@@ -17,15 +18,17 @@ namespace Utils {
   const char *kPrompt = "[ep3]: ";
 
   /* 100MB */
-  const int kSystemSize = 100000000;
+  const long int kSystemSize = 100000000;
   /* 4KB */
-  const int kBlockSize = 4000;
+  const long int kBlockSize = 4000;
+
+  const long int kNumBlocks = kSystemSize/kBlockSize;
 
   const char *kCommands[] = {"mount", "cp", "mkdir", "rmdir", "cat", "touch", "rm", "ls", "find",
     "df", "umount", "sai"};
 
   /* Root ("/") */
-  const Directory kRoot("/", Time::Get()); 
+  const Directory kRoot("/", Time::Get());
 
   /* -- Functions -- */
 
@@ -69,5 +72,62 @@ namespace Utils {
 
   namespace Time {
     time_t Get(void) { return time(NULL); }
+  }
+
+  namespace BlockManager {
+    Block* MemoryTable[25000];
+
+    const long int kEnd = -1;
+
+    Iterator::Iterator(long int index) : index_(index), next_(-1), prev_(-1) {
+      Refresh();
+    }
+    Iterator::~Iterator(void) {}
+
+    Iterator& Iterator::operator=(long int index) {
+      index_ = index;
+      Refresh();
+      return *this;
+    }
+
+    Iterator& Iterator::operator=(const Iterator &it) {
+      index_ = it.index_;
+      Refresh();
+      return *this;
+    }
+
+    Iterator& Iterator::operator++(void) {
+      index_ = next_;
+      Refresh();
+      return *this;
+    }
+
+    Iterator& Iterator::operator--(void) {
+      index_ = prev_;
+      Refresh();
+      return *this;
+    }
+
+    Iterator Begin(Block *b) {
+      return b == nullptr? Iterator(0) : Iterator(b->Index());
+    }
+
+    Block* NextAvailable(void) {
+      for (Iterator it = Begin(nullptr); !it.Ended(); ++it)
+        if (*it == nullptr) {
+          long int index = it.Index();
+          Block *b = new Block(index, "");
+          MemoryTable[index] = b;
+          return b;
+        }
+      return nullptr;
+    }
+
+    void Free(long int i_block) {
+      for (Iterator it = i_block; !it.Ended(); ++it) {
+        delete *it;
+        MemoryTable[it.Index()] = nullptr;
+      }
+    }
   }
 }
