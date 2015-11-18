@@ -8,7 +8,7 @@
 #include "file.hpp"
 #include "block.hpp"
 
-class Regular : File {
+class Regular : public File {
   public:
     Regular(const std::string &name, time_t t_current);
     ~Regular(void);

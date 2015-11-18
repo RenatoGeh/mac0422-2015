@@ -10,6 +10,10 @@ void Block::Write(const std::string &data) {
   content_.assign(data);
 }
 
+void Block::Append(const std::string &data) {
+  content_.append(data);
+}
+
 const std::string& Block::Read(void) {
   return content_;
 }

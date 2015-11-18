@@ -18,19 +18,19 @@ run: main.o $(DEPS)
 main.o: main.cpp utils.cpp
 	g++ -c $(CFLAGS) $^
 
-command.o: command.cpp command.hpp
+command.o: command.cpp command.hpp utils.hpp directory.hpp
 	g++ -c $(CFLAGS) $^
 
 directory.o: directory.cpp directory.hpp file.hpp utils.hpp
 	g++ -c $(CFLAGS) $^
 
-file.o: file.cpp file.hpp
+file.o: file.cpp file.hpp utils.hpp
 	g++ -c $(CFLAGS) $^
 
 regular.o: regular.cpp regular.hpp file.hpp block.hpp
 	g++ -c $(CFLAGS) $^
 
-utils.o: utils.cpp utils.hpp command.hpp file.hpp directory.hpp block.hpp
+utils.o: utils.cpp utils.hpp command.hpp directory.hpp block.hpp
 	g++ -c $(CFLAGS) $^
 
 block.o: block.cpp block.hpp

@@ -3,8 +3,18 @@
 #include <string>
 #include <vector>
 
+#include "utils.hpp"
+#include "directory.hpp"
+
 namespace Command {
   using ArgsTable = const std::vector<std::string>&;
+
+  namespace {
+    Directory &dir_ = Utils::kRoot;
+  }
+
+  Directory& Path(void) { return dir_; }
+  void SetPath(Directory &dir) { dir_ = dir; }
 
   void mount(ArgsTable args) {
 
@@ -15,7 +25,7 @@ namespace Command {
   }
 
   void mkdir(ArgsTable args) {
-
+    dir_.InsertFile(new Directory(args.at(1), Utils::Time::Get()));
   }
 
   void rmdir(ArgsTable args) {
@@ -35,7 +45,7 @@ namespace Command {
   }
 
   void ls(ArgsTable args) {
-
+    dir_.ListFiles(stdout);
   }
 
   void find(ArgsTable args) {

@@ -14,8 +14,14 @@ class Block {
     void SetNext(long int next) { next_ = next; }
     void SetPrev(long int prev) { prev_ = prev; }
 
+    void SetNext(Block *next_block) { next_ = next_block->Index(); }
+    void SetPrev(Block *prev_block) { prev_ = prev_block->Index(); }
+
     void Write(const std::string &data);
+    void Append(const std::string &data);
     const std::string& Read(void);
+
+    long int Bytes(void) { return content_.length(); }
 
     long int Index(void) const { return index_; }
   private:

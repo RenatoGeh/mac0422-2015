@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <exception>
 
 #include "directory.hpp"
 #include "block.hpp"
@@ -31,7 +32,7 @@ namespace Utils {
   extern const char *kCommands[];
 
   /* Diretorio root. */
-  extern const Directory kRoot;
+  extern Directory kRoot;
 
   /* -- Functions -- */
 
@@ -41,14 +42,30 @@ namespace Utils {
   /* Mapeia um comando std::string -> int. */
   void (*CommandToFunction(const std::string& cmd)) (const std::vector<std::string>&);
 
+  long int BytesToBlocks(long int bytes);
+
   namespace Time {
     time_t Get(void);
   }
 
   namespace BlockManager {
     /* FAT Table. */
+
+#define SIZE_MEMORY_TABLE 25000
     /* Constant expression: kNumBlocks -> size. */
-    extern Block* MemoryTable[25000];
+    extern Block* MemoryTable[SIZE_MEMORY_TABLE];
+
+    namespace Bitmap {
+      /* 1 char = 8 bits                 */
+      /* k char = SIZE_MEMORY_TABLE bits */
+      /* k = SIZE_MEMORY_TABLE/8 bits    */
+      long int Bits(void);
+      bool Bit(long int index);
+      void FlipBit(bool index);
+      void SetBit(bool val, long int index);
+    }
+#undef SIZE_MEMORY_TABLE
+
     /* End of FAT. */
     extern const long int kEnd;
 
@@ -67,6 +84,9 @@ namespace Utils {
         friend bool operator==(const Iterator &lval, long int rval);
 
         Block* operator*(void) { return MemoryTable[index_]; }
+
+        long int Next(void) { return next_; }
+        long int Prev(void) { return prev_; }
 
         bool Ended() const { return index_<0 || index_>= kNumBlocks; }
         long int Index(void) const { return index_; }
@@ -90,13 +110,37 @@ namespace Utils {
       return lval.index_ == rval;
     }
 
-    /* Begin of a FAT list. */
+    /* Comeco de uma FAT list. */
     Iterator Begin(Block *b);
+
+    /* Final de uma FAT list. */
+    Iterator End(Block *b);
+
+    /* Numero de blocos livres. */
+    long int Available(void);
 
     /* Encontra proximo bloco livre. */
     Block* NextAvailable(void);
-    /* Libera o bloco do indice dado e todos seus subsequentes. */
+
+    /* Encontra proximo bloco livre reversamente. */
+    Block* NextAvailableRev(void);
+
+    /* Libera o bloco do indice dado e todos seus subsequentes filhos. */
     void Free(long int i_block);
+
+    /* Libera bloco e todos seus subsequentes filhos. */
+    void Free(Block *b);
+  }
+
+  namespace Exception {
+    class NoMemory : public std::exception {
+      public:
+        const char* message(void) const { return what(); }
+      private:
+        const char* what(void) const noexcept override {
+          return "Exception NoMemory: no memory on FAT.";
+        }
+    };
   }
 }
 

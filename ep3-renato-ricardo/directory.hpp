@@ -8,8 +8,9 @@
 
 #include "file.hpp"
 #include "utils.hpp"
+#include "block.hpp"
 
-class Directory : File {
+class Directory : public File {
   public:
     Directory(const std::string &name, time_t t_current);
     ~Directory(void);
@@ -26,8 +27,15 @@ class Directory : File {
     int NumFiles(void) const { return n_files_; }
   private:
     std::forward_list<File*> files_;
+
     int n_files_;
+    long int sizeb_;
     long int files_sizeb_;
+
+    Block *block_head_;
+
+    /* Throws Utils::Exception::NoMemory. */
+    long int WriteName(const std::string &file_name);
 };
 
 #endif /* _DIRECTORY_HPP */

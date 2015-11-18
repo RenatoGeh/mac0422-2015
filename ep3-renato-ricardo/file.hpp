@@ -24,6 +24,8 @@ class File {
     virtual long int Size(void) const = 0;
     virtual bool IsDirectory(void) const = 0;
 
+    long int Blocks(void) const;
+
     friend bool operator<(const File &lval, const File &rval);
     friend bool operator==(const File &lval, const File &rval);
     friend bool operator>(const File &lval, const File &rval);
