@@ -9,12 +9,14 @@
 namespace Stream {
   namespace Output {
     void Open(const std::string &filename);
+    void WriteMeta(void);
     void Write(Block *head);
     void Close(void);
   }
 
   namespace Input {
     void Open(const std::string &filename);
+    void ReadMeta(void);
     /* Read one block. */
     Block* Read(long int index);
     /* Read all blocks starting from start and sets them to FAT. */

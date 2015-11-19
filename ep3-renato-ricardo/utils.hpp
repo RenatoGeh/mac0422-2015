@@ -66,9 +66,11 @@ namespace Utils {
     extern Block* MemoryTable[SIZE_MEMORY_TABLE];
 
     namespace Bitmap {
+      /* 0: free, 1: busy                */
       /* 1 char = 8 bits                 */
       /* k char = SIZE_MEMORY_TABLE bits */
       /* k = SIZE_MEMORY_TABLE/8 bits    */
+      char* Map(void);
       long int Bits(void);
       bool Bit(long int index);
       void FlipBit(bool index);
@@ -130,6 +132,8 @@ namespace Utils {
 
     /* Numero de blocos livres. */
     long int Available(void);
+
+    void SetBlock(long int index, Block *b);
 
     /* Encontra proximo bloco livre. */
     Block* NextAvailable(void);

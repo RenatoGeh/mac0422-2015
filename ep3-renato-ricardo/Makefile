@@ -41,6 +41,5 @@ stream.o: stream.cpp stream.hpp utils.hpp
 
 .PHONY: clean
 clean:
-	find . -type f | xargs -n 5 touch
 	rm *.out *.gch *.o run
 

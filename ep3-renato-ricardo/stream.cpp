@@ -33,6 +33,26 @@ namespace Stream {
       }
     }
 
+    void WriteMeta(void) {
+      if (out_stream_ == NULL)
+        throw Exception::InvalidFile();
+
+      /* Write bitmap. */
+      char *bitmap = Utils::BlockManager::Bitmap::Map();
+      long int s_bitmap = Utils::kNumBlocks/Utils::kByteBits;
+
+#define SIZE_MEMORY_TABLE 25000
+#define CHAR_BITS_SIZE 8
+      uchar data[SIZE_MEMORY_TABLE/CHAR_BITS_SIZE];
+#undef CHAR_BITS_SIZE
+#undef SIZE_MEMORY_TABLE
+
+      for (long int i = 0; i < s_bitmap; ++i)
+        data[i] = (uchar) bitmap[i];
+
+      fwrite(data, sizeof(uchar), sizeof(data), out_stream_);
+    }
+
     void Write(Block *head) {
       if (out_stream_ == NULL)
         throw Exception::InvalidFile();
@@ -68,6 +88,8 @@ namespace Stream {
         throw Exception::InvalidFile();
     }
 
+    void ReadMeta(void) {}
+
     Block* Read(long int index) {
       if (out_stream_ == NULL)
         throw Exception::InvalidFile();
@@ -99,7 +121,7 @@ namespace Stream {
 
       while (next != Utils::BlockManager::kEnd) {
         long int prev = b->Index();
-        Utils::BlockManager::MemoryTable[prev] = b;
+        Utils::BlockManager::SetBlock(prev, b);
         b = Read(next);
         b->SetPrev(prev);
         next = b->Next();

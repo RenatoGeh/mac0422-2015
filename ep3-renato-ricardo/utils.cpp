@@ -96,6 +96,8 @@ namespace Utils {
         /* gcc guarantees zero intialization in compile time. */
         char bits_[kSizeChars] = {0};
       }
+      char* Map(void) { return bits_; }
+
       long int Bits(void) { return SIZE_MEMORY_TABLE; }
 
       /* Takes the bit from index by shifting-right on the difference of the remainder.
@@ -181,11 +183,16 @@ namespace Utils {
 
     long int Available(void) { return available_; }
 
+    void SetBlock(long int index, Block *b) {
+      MemoryTable[index] = b;
+      Bitmap::SetBit(b==nullptr?false:true, index);
+    }
+
     Block* NextAvailable(void) {
       for (long int i = 0; i < SIZE_MEMORY_TABLE; ++i)
-        if (MemoryTable[i] == nullptr) {
+        if (!Bitmap::Bit(i)) {
           Block *b = new Block(i, "");
-          MemoryTable[i] = b;
+          SetBlock(i, b);
           --available_;
           return b;
         }
@@ -194,9 +201,9 @@ namespace Utils {
 
     Block* NextAvailableRev(void) {
       for (int i = SIZE_MEMORY_TABLE-1; i >= 0; --i)
-        if (MemoryTable[i] == nullptr) {
+        if (!Bitmap::Bit(i)) {
           Block *b = new Block(i, "");
-          MemoryTable[i] = b;
+          SetBlock(i, b);
           ++available_;
           return b;
         }
@@ -204,12 +211,12 @@ namespace Utils {
     }
 
     void Free(long int i_block) {
-      if (i_block < 0 || MemoryTable[i_block] == nullptr)
+      if (i_block < 0 || !Bitmap::Bit(i_block))
         return;
 
       for (Iterator it = i_block; !it.Ended(); ++it) {
         delete *it;
-        MemoryTable[it.Index()] = nullptr;
+        SetBlock(it.Index(), nullptr);
         --available_;
       }
     }
