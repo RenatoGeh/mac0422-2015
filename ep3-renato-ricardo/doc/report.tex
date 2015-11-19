@@ -1,0 +1,182 @@
+\documentclass{beamer}
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+
+\mode<presentation> {
+
+ \usetheme{Frankfurt}
+ \setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+
+ \setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+ %\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+
+%----------------------------------------------------------------------------------------
+% TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[EP3 - MAC0422]{EP3 - MAC0422 - 2015 \\
+                      main, file, directory, regular, command e block} % The short title appears at the bottom of every slide, the full title is only on the title page
+\author{Renato Lui Geh e Ricardo Fonseca}
+\date{}
+\begin{document}
+
+\begin{frame}
+  \titlepage % Print the title page as the first slide
+\end{frame}
+
+
+%----------------------------------------------------------------------------------------
+% PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{main} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Linha de input}
+  Assim como nos últimos EPs, há uma string \texttt{cmd\_line} que é a linha de input do usuário. Em seguida dividimos \texttt{cmd} em tokens. \\~\\
+  Isso é feito na função \texttt{Tokenize}. Os tokens são armazenados numa tabela, sendo que o primeiro elemento equivale ao próprio comando, e não o primeiro argumento do comando.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Prompt e Comando}
+  Foi usado \texttt{readline} e \texttt{history} para o prompt, assim como foi feito no EP1.
+  Com o comando do usuário e seus argumentos, passamos a tabela com tais valores para a função
+  \texttt{CommandToFunction} do módulo \texttt{utils}, que realizará, se possível, a função equivalente. 
+\end{frame}
+
+
+%------------------------------------------------
+\section{file}
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Atributos}
+  A classe abstrata \texttt{file} é a representação de um arquivo em nosso programa. Ela possui os seguintes atributos:\\~\\
+       \texttt{string name\_}: Nome do arquivo \\~\\
+  \texttt{time\_t t\_create\_}: Tempo de criação do arquivo \\~\\
+  \texttt{time\_t t\_modify\_}: Tempo da última modificação do arquivo \\~\\
+  \texttt{time\_t t\_access\_}: Tempo do último acesso ao arquivo
+  
+  
+\end{frame}
+
+\begin{frame}
+	 \frametitle{Métodos}
+	Além disso, file possui um método para mudar seu nome (\texttt{Rename()}), um para que calcula quantos blocos o arquivo ocupa (\texttt{long int Block()}) e 3 métodos que atualizam os tempos de criação, modificação e último acesso:\\~\\
+	\texttt{RefreshCreationTime()},\\~\\
+	\texttt{RefreshModifiedTime()} e \\~\\
+	\texttt{RefreshAccessedTime()}, respectivamente. \\~\\
+	
+	Existem também duas funções abstratas, \texttt{long int Size()} e \texttt{bool IsDirectory()}, que retornam o tamanho em bytes do arquivo e se essa classe na verdade é um diretório.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Operadores}
+	Por último, damos override nos operadores \texttt{<, > e ==}, para comparar arquivos. Escolhemos fazer as comparações lexicográficas, para depois facilitar a impressão em ordem alfabética. 
+\end{frame}
+
+%------------------------------------------------
+\section{directory}
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Atributos}
+  \texttt{directory} é uma classe derivada de \texttt{file}. Seus atributos são;:\\~\\
+  
+  \texttt{forward_list<File*> files\_}   : Lista dos arquivos dentro do diretório\\~\\
+  \texttt{int n\_files\_}                : Número de arquivos dentro do diretório\\~\\
+  \texttt{long int files\_sizeb\_}       : Tamanho em bytes dos arquivos dentro do diretorio\\~\\
+      
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Métodos}
+	A classe possue os seguintes métodos:
+	
+	\texttt{ListFiles(FILE *stream)}     : Imprime em stream os arquivos dentro do diretório. \\~\\
+	\texttt{InsertFile(File *f)}         : Insere o arquivo \texttt{f} nesse diretório.\\~\\
+	\texttt{RemoveFile(string &name)}    : Remove o arquivo com nome \texttt{name} deste diretório.\\~\\
+	\texttt{File* FindFile(string &name)}: Procura e retorna o arquivo de nome \texttt{name}.\\~\\ 
+	
+	
+	Além disso foram implementadas os métodos \texttt{long int Size} e \texttt{bool IsDirectory} da classe \texttt{file}. 
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+\section{regular}
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Paginação}
+  Para paginação, rodamos cada processo e se no tempo $t_i$ houver um acesso, vemos se a memória a
+  ser acessada está na memória física. Se não estiver, page fault e usamos um dos algoritmos de
+  substituição de página. Senão não fazemos nada, já que estamos apenas simulando e não realmente
+  lendo a memória.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Not Recently Used Page (NRU)}
+  Foi usado um vetor \texttt{virt\_refs::internal} para representar cada página da memória virtual.
+  Nesse vetor estão os dados de acesso de cada página. Dado um elemento $e_i$, se $e_i=-1$, então
+  ele não foi acessado recentemente. Senão, se $e_i=0$, então ele foi acessado neste ciclo. Senão,
+  entao $e_i>0$ e portanto ele foi acessado $e_i$ segundos atrás. Se $e_i$ for maior ou igual ao
+  limite \texttt{INTERRUPT\_DT} que representa o tempo decorrido após cada \textit{reset}, então
+  $e_i=-1$.
+
+  A função \texttt{nru\_repl} procura por $e_i,...,e_j$ que sejam, juntos, do tamanho requisitado e
+  que tenham menor peso. Definimos peso como:
+
+  $w_i = 1$, se $e_i \geq 0$ \\
+  $w_i = 0$, se $e_i < 0$
+
+  Portanto, queremos $min(\sum_{k=i}^j w_k)$.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{First-In, First-Out (FIFO)}
+  Neste algoritmo de substituição de página, apenas temos uma fila \texttt{page\_queue} e toda vez
+  que ocorre um \textit{page fault}, pegam-se as $n$ primeiras páginas ocupadas (e portanto mais
+  "velhas") tal que a soma dos tamanhos delas sejam a menor soma possível e que sejam também maior
+  ou igual ao tamanho requerido.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Second-Chance Page (SC)}
+Muito parecido com nosso FIFO, o algoritmo SC vai usar uma fila \texttt{page\_queue}, porém ao ocorrer uma page fault, antes de retirar automaticamente a página do topo (as mais "velhas"), ele verifica o elemento $e_i$ da pagina. Caso ele for >= 0, faz ele virar -1 e põe a página no fim da fila. Caso o contrário apenas remove que nem o algoritmo FIFO.
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+\section{Observações Finais}
+%------------------------------------------------
+
+
+
+\begin{frame}
+  \frametitle{Observações}
+  Nosso algoritmo Quick Fit divide a memória virtual até tamanhos maiores ou iguais que o limite inferior, o que gera um problema de desperdício de memória, pois se a memória não for múltiplo dele (16 no caso),
+  é possível que até 15 bytes sejam desperdiçados e nunca utilizados, mas comparado com a memória virtual disponível não é de grande impacto esse valor.
+\end{frame}
+
+%------------------------------------------------
+
+\end{document}
