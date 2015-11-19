@@ -5,6 +5,7 @@
 #include <ctime>
 #include <ctgmath>
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <map>
