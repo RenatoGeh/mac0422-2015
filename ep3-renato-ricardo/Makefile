@@ -8,7 +8,7 @@ else
 	CFLAGS += -O2
 endif
 
-DEPS = block.o command.o directory.o file.o regular.o utils.o
+DEPS = block.o command.o stream.o directory.o file.o regular.o utils.o
 
 all: run
 
@@ -24,7 +24,7 @@ command.o: command.cpp command.hpp utils.hpp directory.hpp
 directory.o: directory.cpp directory.hpp file.hpp utils.hpp
 	g++ -c $(CFLAGS) $^
 
-file.o: file.cpp file.hpp utils.hpp
+file.o: file.cpp file.hpp utils.hpp block.hpp
 	g++ -c $(CFLAGS) $^
 
 regular.o: regular.cpp regular.hpp file.hpp block.hpp
@@ -34,6 +34,9 @@ utils.o: utils.cpp utils.hpp command.hpp directory.hpp block.hpp
 	g++ -c $(CFLAGS) $^
 
 block.o: block.cpp block.hpp
+	g++ -c $(CFLAGS) $^
+
+stream.o: stream.cpp stream.hpp utils.hpp
 	g++ -c $(CFLAGS) $^
 
 .PHONY: clean

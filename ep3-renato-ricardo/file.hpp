@@ -4,6 +4,8 @@
 #include <ctime>
 #include <string>
 
+#include "block.hpp"
+
 class File {
   public:
     File(const std::string &name, time_t t_create, time_t t_modify, time_t t_access);
@@ -30,12 +32,16 @@ class File {
     friend bool operator==(const File &lval, const File &rval);
     friend bool operator>(const File &lval, const File &rval);
 
+    Block* BlockHead(void) { return block_head_; }
   private:
     std::string name_;
 
     time_t t_create_;
     time_t t_modify_;
     time_t t_access_;
+
+  protected:
+    Block *block_head_;
 };
 
 inline bool operator<(const File &lval, const File &rval) {

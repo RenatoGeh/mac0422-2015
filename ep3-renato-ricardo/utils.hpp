@@ -28,6 +28,16 @@ namespace Utils {
   /* Numero de blocos no FAT. */
   extern const long int kNumBlocks;
 
+  /* Tamanho em bytes de um ponteiro. */
+  extern const long int kPointerSize;
+  extern const long int kPointerBytes;
+
+  /* Tamanho em um byte. */
+  extern const long int kByte;
+
+  /* Numero de bits em um byte. */
+  extern const long int kByteBits;
+
   /* Possiveis comandos. */
   extern const char *kCommands[];
 
@@ -96,6 +106,8 @@ namespace Utils {
         long int prev_;
 
         void Refresh(void) {
+          if (index_ < 0)
+            return;
           Block *b = MemoryTable[index_];
           next_ = b->Next();
           prev_ = b->Prev();

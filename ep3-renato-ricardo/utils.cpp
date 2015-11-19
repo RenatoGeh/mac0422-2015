@@ -25,6 +25,13 @@ namespace Utils {
 
   const long int kNumBlocks = kSystemSize/kBlockSize;
 
+  /* 2 bytes */
+  const long int kPointerSize = 65536;
+  const long int kPointerBytes = 2;
+
+  const long int kByte = 256;
+  const long int kByteBits = 8;
+
   const char *kCommands[] = {"mount", "cp", "mkdir", "rmdir", "cat", "touch", "rm", "ls", "find",
     "df", "umount", "sai"};
 

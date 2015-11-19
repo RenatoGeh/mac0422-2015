@@ -29,13 +29,7 @@ class Directory : public File {
     std::forward_list<File*> files_;
 
     int n_files_;
-    long int sizeb_;
     long int files_sizeb_;
-
-    Block *block_head_;
-
-    /* Throws Utils::Exception::NoMemory. */
-    long int WriteName(const std::string &file_name);
 };
 
 #endif /* _DIRECTORY_HPP */

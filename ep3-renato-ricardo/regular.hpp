@@ -20,7 +20,6 @@ class Regular : public File {
     void WriteContent(const std::string& data);
 
   private:
-    Block *block_head_;
     long int sizeb_;
 };
 
