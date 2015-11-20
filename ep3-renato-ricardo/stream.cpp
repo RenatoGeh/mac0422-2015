@@ -33,24 +33,51 @@ namespace Stream {
       }
     }
 
+    namespace {
+#define SIZE_MEMORY_TABLE 25000
+#define CHAR_BITS_SIZE 8
+      void WriteBitmap(void) {
+        /* Write bitmap. */
+        char *bitmap = Utils::BlockManager::Bitmap::Map();
+        long int s_bitmap = Utils::kNumBlocks/Utils::kByteBits;
+
+        uchar data[SIZE_MEMORY_TABLE/CHAR_BITS_SIZE];
+
+        for (long int i = 0; i < s_bitmap; ++i)
+          data[i] = (uchar) bitmap[i];
+
+        fseek(out_stream_, Metadata::kBitmapBlock.first, SEEK_SET);
+        fwrite(data, sizeof(uchar), sizeof(data), out_stream_);
+      }
+
+      void WriteFat(void) {
+        uchar data[2*SIZE_MEMORY_TABLE] = {0};
+        long int nb_size = 2 * Utils::kNumBlocks;
+        for (long int i = 0; i < nb_size; i+=2) {
+          long int b_val = Utils::BlockManager::Bitmap::Bit(i/2)?
+            Utils::BlockManager::MemoryTable[i]->Index() : 0;
+          data[i] = Utils::Math::SecondByte(b_val);
+          data[i+1] = Utils::Math::FirstByte(b_val);
+        }
+
+        fseek(out_stream_, Metadata::kFatBlock.first, SEEK_SET);
+        fwrite(data, sizeof(uchar), sizeof(data), out_stream_);
+      }
+
+      void WriteRoot(void) {
+
+      }
+#undef CHAR_BITS_SIZE
+#undef SIZE_MEMORY_TABLE
+    }
+
     void WriteMeta(void) {
       if (out_stream_ == NULL)
         throw Exception::InvalidFile();
 
-      /* Write bitmap. */
-      char *bitmap = Utils::BlockManager::Bitmap::Map();
-      long int s_bitmap = Utils::kNumBlocks/Utils::kByteBits;
-
-#define SIZE_MEMORY_TABLE 25000
-#define CHAR_BITS_SIZE 8
-      uchar data[SIZE_MEMORY_TABLE/CHAR_BITS_SIZE];
-#undef CHAR_BITS_SIZE
-#undef SIZE_MEMORY_TABLE
-
-      for (long int i = 0; i < s_bitmap; ++i)
-        data[i] = (uchar) bitmap[i];
-
-      fwrite(data, sizeof(uchar), sizeof(data), out_stream_);
+      WriteBitmap();
+      WriteFat();
+      WriteRoot();
     }
 
     void Write(Block *head) {
@@ -62,8 +89,8 @@ namespace Stream {
 
       for (auto it = Utils::BlockManager::Begin(head); !it.Ended(); ++it) {
         /* TODO: Explain on report. */
-        data[1] = (uchar)(index - (Utils::kByte * (Utils::kByte - 1)));
-        data[0] = (uchar)(index >> Utils::kByteBits);
+        data[1] = Utils::Math::FirstByte(index);
+        data[0] = Utils::Math::SecondByte(index);
         const char *content = c_block->Read().c_str();
 
         long int s_content = c_block->Read().length();
@@ -103,7 +130,7 @@ namespace Stream {
        *  (A + B)_2 = a_1a_2a_3a_4 a_5a_6a_7a_8 b_1b_2b_3b_4 b_5b_6b_7b_8 = (next)_10 =
        *  ((A)_10 * 256) + (B)_10 = (next)_10
        */
-      long int next = (long int)buffer_[1] + (long int)(buffer_[0] * Utils::kByte);
+      long int next = Utils::Math::ComposeBytes(buffer_[1], buffer_[0]);
       char converter[BLOCK_SIZE];
 
       long int offset = Utils::kPointerBytes;
@@ -129,6 +156,18 @@ namespace Stream {
     }
 
     void Close(void) { fclose(in_stream_); }
+  }
+
+  namespace Metadata {
+    const std::pair<long int, long int> kBitmapBlock(
+        0, Utils::BytesToBlocks(Utils::kNumBlocks/Utils::kByteBits));
+    const std::pair<long int, long int> kFatBlock(
+        kBitmapBlock.first + kBitmapBlock.second,
+        Utils::BytesToBlocks(Utils::kPointerBytes*(Utils::kSystemSize/Utils::kBlockSize)));
+    const std::pair<long int, long int> kRootBlock(
+        kFatBlock.first + kFatBlock.second, 1);
+    const std::pair<long int, long int> kDiskBlock(
+        kRootBlock.first + kRootBlock.second, Utils::kNumBlocks-1);
   }
 #undef BLOCK_SIZE
 }

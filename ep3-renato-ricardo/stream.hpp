@@ -24,6 +24,14 @@ namespace Stream {
     void Close(void);
   }
 
+  namespace Metadata {
+    /* Pairs -> (pos, length). */
+    extern const std::pair<long int, long int> kBitmapBlock;
+    extern const std::pair<long int, long int> kFatBlock;
+    extern const std::pair<long int, long int> kRootBlock;
+    extern const std::pair<long int, long int> kDiskBlock;
+  }
+
   namespace Exception {
     class InvalidFile : public std::exception {
       public:

@@ -54,6 +54,12 @@ namespace Utils {
 
   long int BytesToBlocks(long int bytes);
 
+  namespace Math {
+    unsigned char FirstByte(long int n);
+    unsigned char SecondByte(long int n);
+    long int ComposeBytes(unsigned char a, unsigned char b);
+  }
+
   namespace Time {
     time_t Get(void);
   }

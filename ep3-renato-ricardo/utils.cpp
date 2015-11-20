@@ -81,6 +81,20 @@ namespace Utils {
 
   long int BytesToBlocks(long int bytes) { return ceil(bytes/kBlockSize); }
 
+  namespace Math {
+    unsigned char FirstByte(long int n) {
+      return n==0?0:((unsigned char) (n - (kByte * (kByte - 1))));
+    }
+
+    unsigned char SecondByte(long int n) {
+      return n==0?0:((unsigned char)(n >> Utils::kByteBits));
+    }
+
+    long int ComposeBytes(unsigned char a, unsigned char b) {
+      return (long int)a + (long int)b * kByte;
+    }
+  }
+
   namespace Time {
     time_t Get(void) { return time(NULL); }
   }
