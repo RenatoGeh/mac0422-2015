@@ -22,7 +22,7 @@
 %----------------------------------------------------------------------------------------
 
 \title[EP3 - MAC0422]{EP3 - MAC0422 - 2015 \\
-                      main, file, directory, regular, command e block} % The short title appears at the bottom of every slide, the full title is only on the title page
+                      main, file, directory, regular, command, block e stream} % The short title appears at the bottom of every slide, the full title is only on the title page
 \author{Renato Lui Geh e Ricardo Fonseca}
 \date{}
 \begin{document}
@@ -112,64 +112,47 @@
 	Além disso foram implementadas os métodos \texttt{long int Size} e \texttt{bool IsDirectory} da classe \texttt{file}. 
 \end{frame}
 
-%------------------------------------------------
 
 %------------------------------------------------
 \section{regular}
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{Paginação}
-  Para paginação, rodamos cada processo e se no tempo $t_i$ houver um acesso, vemos se a memória a
-  ser acessada está na memória física. Se não estiver, page fault e usamos um dos algoritmos de
-  substituição de página. Senão não fazemos nada, já que estamos apenas simulando e não realmente
-  lendo a memória.
+  \frametitle{Arquivo Regular}
+	\texttt{regular} aas
 \end{frame}
 
+
+%------------------------------------------------
+\section{command}
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{Not Recently Used Page (NRU)}
-  Foi usado um vetor \texttt{virt\_refs::internal} para representar cada página da memória virtual.
-  Nesse vetor estão os dados de acesso de cada página. Dado um elemento $e_i$, se $e_i=-1$, então
-  ele não foi acessado recentemente. Senão, se $e_i=0$, então ele foi acessado neste ciclo. Senão,
-  entao $e_i>0$ e portanto ele foi acessado $e_i$ segundos atrás. Se $e_i$ for maior ou igual ao
-  limite \texttt{INTERRUPT\_DT} que representa o tempo decorrido após cada \textit{reset}, então
-  $e_i=-1$.
-
-  A função \texttt{nru\_repl} procura por $e_i,...,e_j$ que sejam, juntos, do tamanho requisitado e
-  que tenham menor peso. Definimos peso como:
-
-  $w_i = 1$, se $e_i \geq 0$ \\
-  $w_i = 0$, se $e_i < 0$
-
-  Portanto, queremos $min(\sum_{k=i}^j w_k)$.
+  \frametitle{Coisas}
+xubaxuba
 \end{frame}
 
+%------------------------------------------------
+\section{block}
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{First-In, First-Out (FIFO)}
-  Neste algoritmo de substituição de página, apenas temos uma fila \texttt{page\_queue} e toda vez
-  que ocorre um \textit{page fault}, pegam-se as $n$ primeiras páginas ocupadas (e portanto mais
-  "velhas") tal que a soma dos tamanhos delas sejam a menor soma possível e que sejam também maior
-  ou igual ao tamanho requerido.
+  \frametitle{Coisas}
+	banana
 \end{frame}
 
+%------------------------------------------------
+\section{stream}
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Second-Chance Page (SC)}
-Muito parecido com nosso FIFO, o algoritmo SC vai usar uma fila \texttt{page\_queue}, porém ao ocorrer uma page fault, antes de retirar automaticamente a página do topo (as mais "velhas"), ele verifica o elemento $e_i$ da pagina. Caso ele for >= 0, faz ele virar -1 e põe a página no fim da fila. Caso o contrário apenas remove que nem o algoritmo FIFO.
+  \frametitle{Coisas}
+	picles
 \end{frame}
 
 %------------------------------------------------
-
+\section{Testes}
 %------------------------------------------------
-\section{Observações Finais}
-%------------------------------------------------
-
-
 
 \begin{frame}
   \frametitle{Observações}
