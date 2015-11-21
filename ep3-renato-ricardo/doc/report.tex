@@ -92,7 +92,7 @@
   \frametitle{Atributos}
   \texttt{directory} é uma classe derivada de \texttt{file}. Seus atributos são;:\\~\\
   
-  \texttt{forward_list<File*> files\_}   : Lista dos arquivos dentro do diretório\\~\\
+  \texttt{forward\_list<File*> files\_}   : Lista dos arquivos dentro do diretório\\~\\
   \texttt{int n\_files\_}                : Número de arquivos dentro do diretório\\~\\
   \texttt{long int files\_sizeb\_}       : Tamanho em bytes dos arquivos dentro do diretorio\\~\\
       
@@ -119,7 +119,10 @@
 
 \begin{frame}
   \frametitle{Arquivo Regular}
-	\texttt{regular} aas
+	\texttt{regular} também é uma classe derivada de file, que representa um arquivo de puro texto.
+  Possui como atributo \texttt{long int sizeb\_}, que guarda o tamanho em bytes do arquivo, e métodos para ler e escrever seu conteúdo: \texttt{string ReadContent(FILE *stream) e WriteContent(string data)}.\\~\\
+
+  Além disso \texttt{regular} da override nas funções de \texttt{Size e isDirectory} para retornar o tamanho do arquivo e falso, respectivamente.
 \end{frame}
 
 
@@ -128,8 +131,8 @@
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{Coisas}
-xubaxuba
+  \frametitle{Comandos}
+  O módulo \texttt{command} possui um namespace com todos os commandos pedidos no enunciado, além de \texttt{SetPath(Directory &dir)} que serve para setar o caminho atual do usuário.
 \end{frame}
 
 %------------------------------------------------
@@ -137,8 +140,27 @@ xubaxuba
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{Coisas}
-	banana
+  \frametitle{Blocos}
+	Nosso módulo \texttt{block} tem a implementação da classe de mesmo nome pra representar um bloco de espaço no disco.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Atributos}
+  Ele possui três atributos:\\~\\
+  
+  \texttt{long int next\_} : Índice do próximo bloco do arquivo. \\~\\
+  \texttt{long int prev\_} : Índice do bloco anterior do arquivo.\\~\\
+  \texttt{long int index\_}: Índice desse bloco.\\~\\
+  \texttt{string content\_}: Conteúdo em texto do bloco.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Métodos}
+  A classe possui métodos para setar e retornar os índices (atuais quanto próximos/anteriores) e tamanho em bytes do conteúdo.\\~\\
+  Além disso ele possui duas funções para escrever data:\\~\\
+
+  \texttt{Write(string &data)} : Sobrescreve o arquivo com \texttt{data}.\\~\\
+  \texttt{Append(string &data)}: Escreve no fim do arquivo \texttt{data}. 
 \end{frame}
 
 %------------------------------------------------
@@ -146,8 +168,53 @@ xubaxuba
 %------------------------------------------------
 
 \begin{frame}
-  \frametitle{Coisas}
-	picles
+  \frametitle{Stream}
+  Esse módulo possui um namespace que organiza as entradas e saídas do programa.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Output}
+	Namespace \texttt{Output} lida com as saidas para o sistema de arquivo com 4 métodos:\\~\\
+
+  \texttt{Open(string &filename)}: Abre um arquivo\\~\\
+  \texttt{WriteMeta()}: Escreve a metadata do sistema de arquivos (o bitmap dos espaços livres, informações do FAT e Root). \\~\\
+  \texttt{Write(Block *head)}: Escreve as informações de todos os blocos no FAT. \\~\\
+  \texttt{Close()}: Fecha o arquivo.
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Input}
+  Namespace \texttt{Input} lida com as entradas do usuário e programa com 4 métodos:\\~\\
+  
+  \texttt{Open(string &filename)}: Abre um arquivo\\~\\
+  \texttt{ReadMeta()}: Lê a metadata do sistema de arquivos. \\~\\
+  \texttt{Block* Read(long int index)}: Lê apenas o conteúdo de um bloco. \\~\\
+  \texttt{Close()}: Fecha o arquivo.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Metadata}
+  Namespace que tem atributos em pares (com a posição e tamanho) de metadata do sistema de arquivos:\\~\\
+
+  \texttt{pair<long int, long int> kBitmapBlock}: Bitmap das posições livres de blocos (1 para ocupado, 0 para livre).\\~\\
+  \texttt{pair<long int, long int> kFatBlock}: Bloco de Informações do FAT. \\~\\
+  \texttt{pair<long int, long int> kRootBlock}: Bloco de informações do Root do sistema de arquivos.\\~\\
+  \texttt{pair<long int, long int> kDiskBlock}: Blocos do restante do disco.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exception}
+  Por último, o namespace \texttt{Exception} serve para mensagens de erro, caso tenha um arquivo inválido ou algo tente ultrapassar o limite de 100MB do sistema de arquivos.
+\end{frame}
+
+%------------------------------------------------
+\section{Observações}
+%------------------------------------------------
+
+\begin{frame}
+  \frametitle{Observações Finais}
+  Colocar aqui outras funções importantes que não mencionei, caso existam.
 \end{frame}
 
 %------------------------------------------------
@@ -156,8 +223,7 @@ xubaxuba
 
 \begin{frame}
   \frametitle{Observações}
-  Nosso algoritmo Quick Fit divide a memória virtual até tamanhos maiores ou iguais que o limite inferior, o que gera um problema de desperdício de memória, pois se a memória não for múltiplo dele (16 no caso),
-  é possível que até 15 bytes sejam desperdiçados e nunca utilizados, mas comparado com a memória virtual disponível não é de grande impacto esse valor.
+  Não temos testes ainda :sadfaceemoji:
 \end{frame}
 
 %------------------------------------------------
