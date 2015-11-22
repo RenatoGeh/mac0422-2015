@@ -9,6 +9,7 @@
 
 #include "directory.hpp"
 #include "block.hpp"
+#include "stream.hpp"
 
 /* Forward declarations. */
 class Directory;
@@ -38,11 +39,10 @@ namespace Utils {
   /* Numero de bits em um byte. */
   extern const long int kByteBits;
 
+  extern const long int kFilesPerDir;
+
   /* Possiveis comandos. */
   extern const char *kCommands[];
-
-  /* Diretorio root. */
-  extern Directory kRoot;
 
   /* -- Functions -- */
 
@@ -69,7 +69,7 @@ namespace Utils {
 
 #define SIZE_MEMORY_TABLE 25000
     /* Constant expression: kNumBlocks -> size. */
-    extern Block* MemoryTable[SIZE_MEMORY_TABLE];
+    extern long int MemoryTable[SIZE_MEMORY_TABLE];
 
     namespace Bitmap {
       /* 0: free, 1: busy                */
@@ -101,7 +101,7 @@ namespace Utils {
         friend bool operator==(const Iterator &lval, const Iterator &rval);
         friend bool operator==(const Iterator &lval, long int rval);
 
-        Block* operator*(void) { return MemoryTable[index_]; }
+        /*Block* operator*(void) { return MemoryTable[index_]; }*/
 
         long int Next(void) { return next_; }
         long int Prev(void) { return prev_; }
@@ -114,11 +114,11 @@ namespace Utils {
         long int prev_;
 
         void Refresh(void) {
-          if (index_ < 0)
+          /*if (index_ < 0)
             return;
           Block *b = MemoryTable[index_];
           next_ = b->Next();
-          prev_ = b->Prev();
+          prev_ = b->Prev();*/
         }
     };
 
@@ -131,27 +131,27 @@ namespace Utils {
     }
 
     /* Comeco de uma FAT list. */
-    Iterator Begin(Block *b);
+    /*Iterator Begin(Block *b);*/
 
     /* Final de uma FAT list. */
-    Iterator End(Block *b);
+    /*Iterator End(Block *b);*/
 
     /* Numero de blocos livres. */
     long int Available(void);
 
-    void SetBlock(long int index, Block *b);
+    void SetBlock(long int index, long int val);
 
     /* Encontra proximo bloco livre. */
-    Block* NextAvailable(void);
+    long int  NextAvailable(void);
 
     /* Encontra proximo bloco livre reversamente. */
-    Block* NextAvailableRev(void);
+    /*Block* NextAvailableRev(void);*/
 
     /* Libera o bloco do indice dado e todos seus subsequentes filhos. */
     void Free(long int i_block);
 
     /* Libera bloco e todos seus subsequentes filhos. */
-    void Free(Block *b);
+    /*void Free(Block *b);*/
   }
 
   namespace Exception {

@@ -6,11 +6,12 @@
 
 #include "utils.hpp"
 #include "block.hpp"
+#include "stream.hpp"
 
 Regular::Regular(const std::string &name, time_t t_current) :
   File(name, t_current, t_current, t_current), sizeb_(0) {}
 Regular::~Regular(void) {
-  if (block_head_ != nullptr)
+  if (block_head_ > 0)
     Utils::BlockManager::Free(block_head_);
 }
 
@@ -20,8 +21,8 @@ bool Regular::IsDirectory(void) const { return false; }
 std::string Regular::ReadContent(FILE *stream) {
   std::string content;
 
-  for (auto it = Utils::BlockManager::Begin(block_head_); !it.Ended(); ++it)
-    content.append((*it)->Read());
+  for (long int i=block_head_;i>0&&i<Utils::kNumBlocks;i=Utils::BlockManager::MemoryTable[i])
+    content.append(Stream::Input::Read(i));
 
   return content;
 }

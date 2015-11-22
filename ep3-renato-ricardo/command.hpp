@@ -9,9 +9,6 @@
 namespace Command {
   using ArgsTable = const std::vector<std::string>&;
 
-  Directory& Path(void);
-  void SetPath(Directory &dir);
-
   void mount(ArgsTable args);
   void cp(ArgsTable args);
   void mkdir(ArgsTable args);

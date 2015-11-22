@@ -14,11 +14,11 @@ Directory::Directory(const std::string &name, time_t t_current) :
     block_head_ = Utils::BlockManager::NextAvailable();
 }
 Directory::~Directory(void) {
-  if (block_head_ != nullptr)
+  if (block_head_ > 0)
     Utils::BlockManager::Free(block_head_);
 }
 
-long int Directory::Size(void) const { return Utils::kBlockSize; }
+long int Directory::Size(void) const { return 2*Utils::kBlockSize; }
 
 bool Directory::IsDirectory(void) const { return true; }
 

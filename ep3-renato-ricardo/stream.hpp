@@ -2,27 +2,29 @@
 #define _STREAM_HPP
 
 #include <string>
+#include <utility>
 #include <exception>
 
 #include "block.hpp"
 
 namespace Stream {
+  void Open(const std::string &filename);
+  void Close(void);
   namespace Output {
-    void Open(const std::string &filename);
     void WriteMeta(void);
-    void Write(Block *head);
-    void Close(void);
+    void WriteBit(bool val, long int index);
+    void Write(long int index, const std::string &to_write);
+    void WriteRegular(long int index, const std::string &content);
   }
 
   namespace Input {
-    void Open(const std::string &filename);
     void ReadMeta(void);
-    /* Read one block. */
-    Block* Read(long int index);
-    /* Read all blocks starting from start and sets them to FAT. */
-    void ReadAll(long int start);
+    bool ReadBit(long int index);
     void ReadDirectory(long int index);
-    void Close(void);
+    /* Read one block. */
+    std::string Read(long int index);
+    /* Read all blocks starting from start and sets them to FAT. */
+    std::string ReadRegular(long int start);
   }
 
   namespace Metadata {

@@ -13,6 +13,7 @@
 #include "command.hpp"
 #include "directory.hpp"
 #include "block.hpp"
+#include "stream.hpp"
 
 namespace Utils {
   /* -- Constants -- */
@@ -33,11 +34,10 @@ namespace Utils {
   const long int kByte = 256;
   const long int kByteBits = 8;
 
+  const long int kFilesPerDir = 250;
+
   const char *kCommands[] = {"mount", "cp", "mkdir", "rmdir", "cat", "touch", "rm", "ls", "find",
     "df", "umount", "sai"};
-
-  /* Root ("/") */
-  Directory kRoot("/", Time::Get());
 
   /* -- Functions -- */
 
@@ -89,9 +89,15 @@ namespace Utils {
     unsigned char SecondByte(long int n) {
       return n==0?0:((unsigned char)(n >> Utils::kByteBits));
     }
-
+    /* Consider:
+     * (A)_2 = a_1a_2a_3a_4 a_5a_6a_7a_8 = (buffer_[0])_10
+     * (B)_2 = b_1b_2b_3b_4 b_5b_6b_7b_8 = (buffer_[1])_10
+     * Then the sum of A + B is
+     *  (A + B)_2 = a_1a_2a_3a_4 a_5a_6a_7a_8 b_1b_2b_3b_4 b_5b_6b_7b_8 = (next)_10 =
+     *  ((A)_10 * 256) + (B)_10 = (next)_10
+     */
     long int ComposeBytes(unsigned char a, unsigned char b) {
-      return (long int)a + (long int)b * kByte;
+      return (long int)a * kByte + (long int)b;
     }
   }
 
@@ -101,7 +107,7 @@ namespace Utils {
 
   namespace BlockManager {
 #define SIZE_MEMORY_TABLE 25000
-    Block* MemoryTable[SIZE_MEMORY_TABLE];
+    long int MemoryTable[SIZE_MEMORY_TABLE];
 
     namespace Bitmap {
 #define CHAR_BITS_SIZE 8
@@ -126,24 +132,30 @@ namespace Utils {
        *
        * Note: gcc guarantees shift by 0 as identity shift.
        */
-      bool Bit(long int index) {
+      /*bool Bit(long int index) {
         long int i_char = index/CHAR_BITS_SIZE;
         return (bits_[i_char]>>((index-i_char*CHAR_BITS_SIZE)-1))%2;
+      }*/
+      bool Bit(long int index) {
+        return Stream::Input::ReadBit(index);
       }
 
       /* Flips the bit at index by XORing a constant multiple of 2 to flip. */
-      void FlipBit(long int index) {
+      /*void FlipBit(long int index) {
         long int i_char = index/CHAR_BITS_SIZE;
         long int diff = (index-i_char*CHAR_BITS_SIZE)-1;
         bits_[i_char]^=(1<<diff);
-      }
+      }*/
 
       /* Does the same as FlipBit except if the value is the same, noop. */
-      void SetBit(bool val, long int index) {
+      /*void SetBit(bool val, long int index) {
         long int i_char = index/CHAR_BITS_SIZE;
         long int diff = (index-i_char*CHAR_BITS_SIZE)-1;
         if ((bits_[i_char]>>diff)%2 != val)
           bits_[i_char]^=(1<<diff);
+      }*/
+      void SetBit(bool val, long int index) {
+        Stream::Output::WriteBit(val, index);
       }
 #undef CHAR_BITS_SIZE
     }
@@ -183,7 +195,7 @@ namespace Utils {
       return *this;
     }
 
-    Iterator Begin(Block *b) {
+    /*Iterator Begin(Block *b) {
       return b == nullptr? Iterator(0) : Iterator(b->Index());
     }
 
@@ -193,16 +205,24 @@ namespace Utils {
       auto it = Begin(b);
       for (; it.Next() != kEnd; ++it);
       return it;
-    }
+    }*/
 
     long int Available(void) { return available_; }
 
-    void SetBlock(long int index, Block *b) {
-      MemoryTable[index] = b;
-      Bitmap::SetBit(b==nullptr?false:true, index);
+    void SetBlock(long int index, long int val) {
+      MemoryTable[index] = val;
+      /*Bitmap::SetBit(b==nullptr?false:true, index);*/
+      Bitmap::SetBit(val, index);
     }
 
-    Block* NextAvailable(void) {
+    long int NextAvailable(void) {
+      for (long int i = Stream::Metadata::kDiskBlock.first; i < SIZE_MEMORY_TABLE; ++i)
+        if (Bitmap::Bit(i))
+          return i;
+      return -1;
+    }
+
+    /*Block* NextAvailable(void) {
       for (long int i = 0; i < SIZE_MEMORY_TABLE; ++i)
         if (!Bitmap::Bit(i)) {
           Block *b = new Block(i, "");
@@ -211,9 +231,9 @@ namespace Utils {
           return b;
         }
       return nullptr;
-    }
+    }*/
 
-    Block* NextAvailableRev(void) {
+    /*Block* NextAvailableRev(void) {
       for (int i = SIZE_MEMORY_TABLE-1; i >= 0; --i)
         if (!Bitmap::Bit(i)) {
           Block *b = new Block(i, "");
@@ -222,20 +242,19 @@ namespace Utils {
           return b;
         }
       return nullptr;
-    }
+    }*/
 
     void Free(long int i_block) {
       if (i_block < 0 || !Bitmap::Bit(i_block))
         return;
 
-      for (Iterator it = i_block; !it.Ended(); ++it) {
-        delete *it;
-        SetBlock(it.Index(), nullptr);
+      for (long int i = 0; i < SIZE_MEMORY_TABLE; i = MemoryTable[i]) {
+        SetBlock(i, -1);
         --available_;
       }
     }
 
-    void Free(Block *b) { Free(b->Index()); }
+    /*void Free(Block *b) { Free(b->Index()); }*/
 #undef SIZE_MEMORY_TABLE
   }
 }

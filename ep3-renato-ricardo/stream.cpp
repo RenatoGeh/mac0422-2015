@@ -2,6 +2,7 @@
 #include <climits>
 #include <cstring>
 #include <unistd.h>
+#include <utility>
 
 #include "stream.hpp"
 #include "utils.hpp"
@@ -13,26 +14,27 @@ namespace Stream {
     using uchar = unsigned char;
     uchar buffer_[BLOCK_SIZE];
 
-    FILE *in_stream_ = NULL;
-    FILE *out_stream_ = NULL;
+    FILE *stream_ = NULL;
 
     bool Exists(const std::string &filename) { return access(filename.c_str(), F_OK) != -1; }
   }
 
-  namespace Output {
-    void Open(const std::string &filename) {
-      bool exists = Exists(filename);
-      out_stream_ = fopen(filename.c_str(), "wb");
-      if (out_stream_ == NULL)
-        throw Exception::InvalidFile();
-      if (!exists) {
-        /* Set all content to 0. */
-        memset(buffer_, 0, BLOCK_SIZE);
-        for (long int i = 0; i < Utils::kNumBlocks; ++i)
-          fwrite(buffer_, sizeof(uchar), sizeof(buffer_), out_stream_);
-      }
+  void Open(const std::string &filename) {
+    bool exists = Exists(filename);
+    stream_ = fopen(filename.c_str(), "rb+");
+    if (stream_ == NULL)
+      throw Exception::InvalidFile();
+    if (!exists) {
+      /* Set all content to 0. */
+      memset(buffer_, 0, BLOCK_SIZE);
+      for (long int i = 0; i < Utils::kNumBlocks; ++i)
+        fwrite(buffer_, sizeof(uchar), sizeof(buffer_), stream_);
     }
+  }
 
+  void Close(void) { fclose(stream_); }
+
+  namespace Output {
     namespace {
 #define SIZE_MEMORY_TABLE 25000
 #define CHAR_BITS_SIZE 8
@@ -46,8 +48,8 @@ namespace Stream {
         for (long int i = 0; i < s_bitmap; ++i)
           data[i] = (uchar) bitmap[i];
 
-        fseek(out_stream_, Metadata::kBitmapBlock.first, SEEK_SET);
-        fwrite(data, sizeof(uchar), sizeof(data), out_stream_);
+        fseek(stream_, Metadata::kBitmapBlock.first*Utils::kBlockSize, SEEK_SET);
+        fwrite(data, sizeof(uchar), sizeof(data), stream_);
       }
 
       void WriteFat(void) {
@@ -55,24 +57,21 @@ namespace Stream {
         long int nb_size = 2 * Utils::kNumBlocks;
         for (long int i = 0; i < nb_size; i+=2) {
           long int b_val = Utils::BlockManager::Bitmap::Bit(i/2)?
-            Utils::BlockManager::MemoryTable[i]->Index() : 0;
+            Utils::BlockManager::MemoryTable[i] : 0;
           data[i] = Utils::Math::SecondByte(b_val);
           data[i+1] = Utils::Math::FirstByte(b_val);
         }
 
-        fseek(out_stream_, Metadata::kFatBlock.first, SEEK_SET);
-        fwrite(data, sizeof(uchar), sizeof(data), out_stream_);
+        fseek(stream_, Metadata::kFatBlock.first*Utils::kBlockSize, SEEK_SET);
+        fwrite(data, sizeof(uchar), sizeof(data), stream_);
       }
 
       void WriteRoot(void) {
-
       }
-#undef CHAR_BITS_SIZE
-#undef SIZE_MEMORY_TABLE
     }
 
     void WriteMeta(void) {
-      if (out_stream_ == NULL)
+      if (stream_ == NULL)
         throw Exception::InvalidFile();
 
       WriteBitmap();
@@ -80,82 +79,155 @@ namespace Stream {
       WriteRoot();
     }
 
-    void Write(Block *head) {
-      if (out_stream_ == NULL)
+    void WriteBit(bool val, long int index) {
+      long int i_char = index/CHAR_BITS_SIZE;
+      long int diff = (index-i_char*CHAR_BITS_SIZE)-1;
+      fseek(stream_, Metadata::kBitmapBlock.first*Utils::kBlockSize+i_char, SEEK_SET);
+      uchar byte;
+      fread(&byte, sizeof(uchar), sizeof(uchar), stream_);
+      if ((byte>>diff)%2 != val)
+        byte^=(1<<diff);
+      fseek(stream_, Metadata::kBitmapBlock.first*Utils::kBlockSize+i_char, SEEK_SET);
+      fwrite(&byte, sizeof(uchar), sizeof(byte), stream_);
+    }
+
+    void Write(long int index, const std::string &to_write) {
+      if (stream_ == NULL)
         throw Exception::InvalidFile();
-      long int index = head->Index();
       uchar data[BLOCK_SIZE];
-      Block *c_block = head;
 
-      for (auto it = Utils::BlockManager::Begin(head); !it.Ended(); ++it) {
-        /* TODO: Explain on report. */
-        data[1] = Utils::Math::FirstByte(index);
-        data[0] = Utils::Math::SecondByte(index);
-        const char *content = c_block->Read().c_str();
+      /* TODO: Explain on report. */
+      data[1] = Utils::Math::FirstByte(index);
+      data[0] = Utils::Math::SecondByte(index);
+      const char *content = to_write.c_str();
+      long int s_content = to_write.length();
+      long int offset = Utils::kPointerBytes;
+      for (long int i = offset; i < s_content ||  i < BLOCK_SIZE; ++i)
+        data[i] = (uchar) content[i-offset];
 
-        long int s_content = c_block->Read().length();
-        long int offset = Utils::kPointerBytes;
-        for (long int i = offset; i < s_content ||  i < BLOCK_SIZE; ++i)
-          data[i] = (uchar) content[i-offset];
+      fseek(stream_, index*Utils::kBlockSize, SEEK_SET);
+      fwrite(data, sizeof(uchar), sizeof(uchar)*BLOCK_SIZE, stream_);
+    }
 
-        fseek(out_stream_, index*Utils::kNumBlocks, SEEK_SET);
-        fwrite(data, sizeof(uchar), sizeof(uchar)*BLOCK_SIZE, out_stream_);
-        c_block = *it;
-        index = c_block->Index();
+    void WriteRegular(long int index, const std::string &content) {
+      fseek(stream_, index*Utils::kBlockSize, SEEK_SET);
+      long int n_ptr = Utils::BlockManager::MemoryTable[index];
+      if (!Utils::BlockManager::Bitmap::Bit(index)) {
+        fread(buffer_, sizeof(uchar), sizeof(buffer_), stream_);
+        Utils::BlockManager::SetBlock((n_ptr = Utils::Math::ComposeBytes(buffer_[1], buffer_[0])),
+            index);
+      }
+      int n_blocks = Utils::BytesToBlocks(4 + content.length() +
+          2*content.length()/Utils::kBlockSize);
+      std::string partition = content.substr(0, Utils::kBlockSize-6);
+      for (int i=0;i<Utils::kBlockSize-6;++i)
+        buffer_[i] = (uchar) partition.at(i);
+      for (int i=0;i<n_blocks;++i) {
+        long int new_block = Utils::BlockManager::NextAvailable();
+        partition = content.substr(Utils::kBlockSize-6 + i*(Utils::kBlockSize-2),
+            Utils::kBlockSize-2);
+        if (new_block < 0)
+          throw Utils::Exception::NoMemory();
+        for (int j=0;j<Utils::kBlockSize-2;++j)
+          buffer_[j+2] = (uchar) partition.at(j);
+        fseek(stream_, new_block*Utils::kBlockSize, SEEK_SET);
+        fwrite(buffer_, sizeof(uchar), sizeof(buffer_), stream_);
       }
     }
 
-    void Close(void) { fclose(out_stream_); }
+#undef CHAR_BITS_SIZE
+#undef SIZE_MEMORY_TABLE
   }
 
   namespace Input {
-    void Open(const std::string &filename) {
-      in_stream_ = fopen(filename.c_str(), "rb");
-      if (in_stream_ == NULL)
-        throw Exception::InvalidFile();
+    namespace {
+      void ReadFat() {
+        fseek(stream_, Metadata::kFatBlock.first*Utils::kBlockSize, SEEK_SET);
+        fread(buffer_, sizeof(uchar), sizeof(buffer_), stream_);
+        int i;
+        for (i = 0; i < Utils::kNumBlocks; i+=2)
+          Utils::BlockManager::MemoryTable[i]=Utils::Math::ComposeBytes(buffer_[i], buffer_[i+1]);
+        fseek(stream_, (Metadata::kFatBlock.first+1)*Utils::kBlockSize, SEEK_SET);
+        fread(buffer_, sizeof(uchar), sizeof(buffer_), stream_);
+        for (;i < 2*Utils::kNumBlocks; i+=2)
+          Utils::BlockManager::MemoryTable[i]=Utils::Math::ComposeBytes(buffer_[i], buffer_[i+1]);
+      }
+
+      void ReadRoot() {
+        ReadDirectory(Metadata::kRootBlock.first);
+      }
     }
 
-    void ReadMeta(void) {}
+    void ReadDirectory(long int index) {
+      long int num_files, pointer;
+      bool is_direc;
+      fseek(stream_, index*Utils::kBlockSize, SEEK_SET);
+      fread(buffer_, sizeof(uchar), sizeof(buffer_), stream_);
+      /*Pega o bit mais significatio, que diz se é um diretório ou não*/
+      is_direc = (buffer_[2]>>7)%2;
+      pointer  = Utils::Math::ComposeBytes(buffer_[1], buffer_[0]);
+      Utils::BlockManager::SetBlock(index, pointer);
+      if (is_direc) {
+        /*Caso seja um diretório*/
+        num_files = (long int) buffer_[3];
 
-    Block* Read(long int index) {
-      if (out_stream_ == NULL)
+        /*Começa iteração por todos arquivos do diretório*/
+        for (long int i = 0; i< num_files; i++) {
+          pointer = Utils::Math::ComposeBytes(buffer_[4+i*31], buffer_[5+i*31]);
+          ReadDirectory(pointer);
+        }
+      }
+    }
+
+    void ReadMeta(void) {
+      if (stream_ == NULL)
         throw Exception::InvalidFile();
-      fseek(in_stream_, index*Utils::kNumBlocks, SEEK_SET);
-      fread(buffer_, sizeof(uchar), sizeof(buffer_), in_stream_);
+      ReadFat();
+      ReadRoot();
+    }
 
-      /* Consider:
-       * (A)_2 = a_1a_2a_3a_4 a_5a_6a_7a_8 = (buffer_[0])_10
-       * (B)_2 = b_1b_2b_3b_4 b_5b_6b_7b_8 = (buffer_[1])_10
-       * Then the sum of A + B is
-       *  (A + B)_2 = a_1a_2a_3a_4 a_5a_6a_7a_8 b_1b_2b_3b_4 b_5b_6b_7b_8 = (next)_10 =
-       *  ((A)_10 * 256) + (B)_10 = (next)_10
-       */
-      long int next = Utils::Math::ComposeBytes(buffer_[1], buffer_[0]);
+#define CHAR_BITS_SIZE 8
+    bool ReadBit(long int index) {
+      long int i_char = index/CHAR_BITS_SIZE;
+      fseek(stream_, Metadata::kBitmapBlock.first*Utils::kBlockSize+i_char, SEEK_SET);
+      uchar byte;
+      fread(&byte, sizeof(uchar), sizeof(uchar), stream_);
+      return (byte>>((index-i_char*CHAR_BITS_SIZE)-1))%2;
+    }
+#undef CHAR_BITS_SIZE
+
+    std::string Read(long int index) {
+      if (stream_ == NULL)
+        throw Exception::InvalidFile();
+      fseek(stream_, index*Utils::kBlockSize, SEEK_SET);
+      fread(buffer_, sizeof(uchar), sizeof(buffer_), stream_);
+
       char converter[BLOCK_SIZE];
 
       long int offset = Utils::kPointerBytes;
       for (long int i = offset; i < BLOCK_SIZE; ++i)
         converter[i-offset] = (char) buffer_[i];
 
-      Block *b = new Block(index, std::string(converter));
-      b->SetNext(next);
-      return b;
+      return std::string(converter);
     }
 
-    void ReadAll(long int start) {
-      Block *b = Read(start);
-      long int next = b->Next();
+    std::string ReadRegular(long int start) {
+      int i = start;
+      fseek(stream_, i*Utils::kBlockSize, SEEK_SET);
+      fread(buffer_, sizeof(uchar), sizeof(buffer_), stream_);
 
-      while (next != Utils::BlockManager::kEnd) {
-        long int prev = b->Index();
-        Utils::BlockManager::SetBlock(prev, b);
-        b = Read(next);
-        b->SetPrev(prev);
-        next = b->Next();
+      std::string text;
+      for (int i=4;i<Utils::kBlockSize;++i)
+        text.push_back((char)buffer_[i]);
+
+      while (i > 0) {
+        text.append(Read(i));
+        i = Utils::Math::ComposeBytes(buffer_[1], buffer_[0]);
       }
+
+      return text;
     }
 
-    void Close(void) { fclose(in_stream_); }
   }
 
   namespace Metadata {
@@ -165,9 +237,9 @@ namespace Stream {
         kBitmapBlock.first + kBitmapBlock.second,
         Utils::BytesToBlocks(Utils::kPointerBytes*(Utils::kSystemSize/Utils::kBlockSize)));
     const std::pair<long int, long int> kRootBlock(
-        kFatBlock.first + kFatBlock.second, 1);
+        kFatBlock.first + kFatBlock.second, 2);
     const std::pair<long int, long int> kDiskBlock(
-        kRootBlock.first + kRootBlock.second, Utils::kNumBlocks-1);
+        kRootBlock.first + kRootBlock.second, Utils::kNumBlocks-kRootBlock.first);
   }
 #undef BLOCK_SIZE
 }

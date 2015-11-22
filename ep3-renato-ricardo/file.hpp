@@ -32,7 +32,7 @@ class File {
     friend bool operator==(const File &lval, const File &rval);
     friend bool operator>(const File &lval, const File &rval);
 
-    Block* BlockHead(void) { return block_head_; }
+    long int BlockHead(void) { return block_head_; }
   private:
     std::string name_;
 
@@ -41,7 +41,7 @@ class File {
     time_t t_access_;
 
   protected:
-    Block *block_head_;
+    long int block_head_;
 };
 
 inline bool operator<(const File &lval, const File &rval) {

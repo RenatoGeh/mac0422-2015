@@ -1,2 +1,29 @@
-GDB:
+EP3 - MAC0422
+Renato Geh - NUSP: 8536030
+Ricardo Fonseca - NUSP: 8536131
+
+1. Compiling:
+  Para compilar o EP:
+    $ make clean
+    $ make
+  Foi usado -std=c++11 e g++ 4.9.
+
+2. Running:
+  Para rodar o EP:
+    $ ./run
+
+3. GDB:
+  No meu ambiente Linux Mint 17.1 Rebecca com gcc-4.8 e Python 2.7.6 o GDB emitia warnings sobre
+Python. O seguinte comando no GDB resolve o problema se o warning estiver se manifestando:
+
   (gdb) python sys.path.append("/usr/share/gcc-4.8/python")
+
+  Após atualizar o gcc para gcc-4.9 o warning desapareceu.
+
+4. Considerações:
+  (a) Foi considerado que os diretórios tinham tamanho fixo de 2 blocos (8000 bytes).
+  (b) Por cada diretório ter 8000 bytes fixos, há um limite de 250 arquivos por diretório e limite
+      de 13 caracteres.
+  (c) Fiz antes que o FAT ficasse com os próprios blocos na memória. Mudei para ler apenas no
+      disco, mas acabei deixando o tipo dos elementos do FAT como blocos por falta de tempo. Não
+      mexo com os blocos, apenas com o disco, no entanto.
