@@ -21,6 +21,7 @@ namespace Stream {
     Block* Read(long int index);
     /* Read all blocks starting from start and sets them to FAT. */
     void ReadAll(long int start);
+    void ReadDirectory(long int index);
     void Close(void);
   }
 
